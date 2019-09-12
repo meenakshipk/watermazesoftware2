@@ -486,7 +486,15 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         bs.set(4, jCheckBoxRVelpP.isSelected());
         bs.set(5, jCheckBoxRVelErr.isSelected());
 
+        //Select directory to store files
+        JFileChooser Fc = new JFileChooser();
+        Fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        Fc.showOpenDialog(this);
+        dir = Fc.getSelectedFile();
+
         Measures m = new Measures();
+        Maps map = new Maps();
+        ImageProcessor ip = null;
 
         for (DataStore ds : dss) {
             for (int mouse = 0; mouse < ds.getMice().length; mouse++) {
@@ -501,7 +509,11 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.resTime(series);
                             resultHMap.put(mouse, result);
                             ds.setHMap("Residence Time", resultHMap);
-                            System.out.print("Res time :" + mouse + "\n");
+//                            System.out.print("Res time :" + mouse + "\n");
+                            ip = map.generateHeatMap(result);
+//                            map.show(ip);
+                            map.saveHeatMap("ResidenceTime_M" + mouse, ip);
+
                             break;
 
                         case 1: //rdist
@@ -509,7 +521,10 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.dist(series);
                             resultHMap.put(mouse, result);
                             ds.setHMap("Distance", resultHMap);
-                            System.out.print("Distance: " + mouse + "\n");
+//                            System.out.print("Distance: " + mouse + "\n");
+                            ip = map.generateHeatMap(map.measureHeatMap(series, result));
+//                            map.show(ip);
+                            map.saveHeatMap("Distance_M" + mouse, ip);
                             break;
 
                         case 2: //rvel
@@ -517,7 +532,10 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.vel(series);
                             resultHMap.put(mouse, result);
                             ds.setHMap("Velocity", resultHMap);
-                            System.out.print("Velocity: " + mouse + "\n");
+//                            System.out.print("Velocity: " + mouse + "\n");
+                            ip = map.generateHeatMap(map.measureHeatMap(series, result));
+//                            map.show(ip);
+                            map.saveHeatMap("Velocity_M" + mouse, ip);
                             break;
 
                         case 3: //rvel along pt
@@ -525,7 +543,10 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.velComponent(series, "cos");
                             resultHMap.put(mouse, result);
                             ds.setHMap("Velocity along Pt", resultHMap);
-                            System.out.print("Velocity along Pt: " + mouse + "\n");
+//                            System.out.print("Velocity along Pt: " + mouse + "\n");
+                            ip = map.generateHeatMap(map.measureHeatMap(series, result));
+//                            map.show(ip);
+                            map.saveHeatMap("VelocityAlongPt_M" + mouse, ip);
                             break;
 
                         case 4:
@@ -533,7 +554,10 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.velComponent(series, "sin");
                             resultHMap.put(mouse, result);
                             ds.setHMap("Velocity perpendicular Pt", resultHMap);
-                            System.out.print("Velocity perpendicular Pt: " + mouse + "\n");
+//                            System.out.print("Velocity perpendicular Pt: " + mouse + "\n");
+                            ip = map.generateHeatMap(map.measureHeatMap(series, result));
+//                            map.show(ip);
+                            map.saveHeatMap("VelocityPerpendPt_M" + mouse, ip);
                             break;
 
                         case 5:
@@ -541,7 +565,10 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.velErr(series);
                             resultHMap.put(mouse, result);
                             ds.setHMap("Velocity Error", resultHMap);
-                            System.out.print("Velocity Error: " + mouse + "\n");
+//                            System.out.print("Velocity Error: " + mouse + "\n");
+                            ip = map.generateHeatMap(map.measureHeatMap(series, result));
+//                            map.show(ip);
+                            map.saveHeatMap("VelocityError_M" + mouse, ip);
                             break;
                     }
                     if (i == Integer.MAX_VALUE) {
@@ -566,17 +593,17 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         private Measures() {
         }
 
-        private ArrayList<Integer> resTime(XYSeries series) {
-            ArrayList<Integer> result = new ArrayList<>();
+        private ArrayList<Float> resTime(XYSeries series) {
+            ArrayList<Float> result = new ArrayList<>();
             //initalise resTime with zeros for an image with dimensions 240,240
             for (int count = 0; count <= (240 * 240); count++) {
-                result.add(0);
+                result.add(0f);
             }
             for (int i = 0; i < series.getItemCount(); i++) {
                 float XPo = series.getX(i).floatValue();
                 float YPo = series.getY(i).floatValue();
                 int arrayIdx = ((Math.round(YPo) * 240) + Math.round(XPo));
-                result.set(arrayIdx, (((int) result.get(arrayIdx)) + 10)); //increment intensity by 10
+                result.set(arrayIdx, (result.get(arrayIdx) + 10)); //increment intensity by 10
             }
             return result;
         }
@@ -744,35 +771,52 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 
     }
 
-    private ImageProcessor generateHeatMap(XYSeries curSeries, ArrayList<Float> M) {
-        //initalise resTime with zeros for an image with dimensions 240,240
-        ArrayList<Float> result = new ArrayList<>();
-        for (int count = 0; count < (240 * 240); count++) {
-            result.add(0.0f);
+    private class Maps {
+
+        private Maps() {
         }
-        for (int j = 0; j < curSeries.getItemCount() - 1; j++) {
-            float XPo = curSeries.getX(j).floatValue();
-            float YPo = curSeries.getY(j).floatValue();
-            int arrayIdx = ((Math.round(YPo) * 240) + Math.round(XPo));
-            float value;
-            if (result.get(arrayIdx) != 0) {
-                value = ((result.get(arrayIdx) + M.get(j)) / 2);
-            } else {
-                value = M.get(j);
+
+        private void show(ImageProcessor ip) {
+            ImagePlus imp = new ImagePlus("", ip);
+            imp.show();
+        }
+
+        private void saveHeatMap(String title, ImageProcessor ip) {
+            ImagePlus imp = new ImagePlus(title, ip);
+            new FileSaver(imp).saveAsTiff(dir.getPath() + File.separator + imp.getTitle() + ".tif");
+        }
+
+        private ArrayList<Float> measureHeatMap(XYSeries curSeries, ArrayList<Float> M) {
+            //initalise resTime with zeros for an image with dimensions 240,240
+            ArrayList<Float> result = new ArrayList<>();
+            for (int count = 0; count < (240 * 240); count++) {
+                result.add(0.0f);
             }
-            result.set(arrayIdx, value);
+            for (int j = 0; j < curSeries.getItemCount() - 1; j++) {
+                float XPo = curSeries.getX(j).floatValue();
+                float YPo = curSeries.getY(j).floatValue();
+                int arrayIdx = ((Math.round(YPo) * 240) + Math.round(XPo));
+                float value;
+                if (result.get(arrayIdx) != 0) {
+                    value = ((result.get(arrayIdx) + M.get(j)) / 2);
+                } else {
+                    value = M.get(j);
+                }
+                result.set(arrayIdx, value);
+            }
+            return result;
         }
 
-        int width = 240;
-        int height = 240;
-        ImageProcessor ip = new FloatProcessor(width, height);
+        private ImageProcessor generateHeatMap(ArrayList<Float> Measure) {
+            int width = 240;
+            int height = 240;
+            ImageProcessor ip = new FloatProcessor(width, height);
 
-        for (int count = 0; count < (240 * 240); count++) {
-            ip.setf(count, result.get(count));
+            for (int count = 0; count < (240 * 240); count++) {
+                ip.setf(count, Measure.get(count));
+            }
+            return ip;
         }
-
-        return ip;
-
     }
 
     private class ScatterPlot extends JFrame {
