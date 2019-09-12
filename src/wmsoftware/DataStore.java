@@ -28,8 +28,6 @@ public class DataStore {
     private Mouse[] Mice;
     private HashMap<Integer, XYSeries> posHMap = null;
     private HashMap<Integer, ArrayList<Integer>> resTimeHMap = null;
-
-//    private HashMap<Integer, ArrayList<Integer>> resTimeHMap = new HashMap<>();
     private HashMap<Integer, ArrayList<Float>> distHMap = null;
     private HashMap<Integer, ArrayList<Float>> velHMap = null;
     private HashMap<Integer, ArrayList<Float>> velCosHMap = null;
@@ -42,10 +40,8 @@ public class DataStore {
      * @param files
      */
     public DataStore(int num, File[] files) {
-        //MID = new int[num];
         Mice = new Mouse[num];
         for (int i = 0; i < Mice.length; i++) {
-            //MID[i] = i;
             Mice[i] = new Mouse();
             Mice[i].setID(i);
         }
@@ -108,11 +104,11 @@ public class DataStore {
                 distHMap = hm;
             case "Velocity":
                 velHMap = hm;
-            case "VelocityCosComp":
+            case "Velocity along Pt":
                 velCosHMap = hm;
-            case "VelocitySinComp":
+            case "Velocity perpendicular Pt":
                 velSinHMap = hm;
-            case "VelocityError":
+            case "Velocity Error":
                 velErrHMap = hm;
         }
     }
