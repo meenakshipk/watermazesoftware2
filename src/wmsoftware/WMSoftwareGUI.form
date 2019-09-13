@@ -238,7 +238,7 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="0" attributes="0">
+                  <Group type="102" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jCheckBoxResTime" min="-2" max="-2" attributes="0"/>
@@ -249,6 +249,7 @@
                           <Component id="jCheckBoxRVel" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="jCheckBoxRVelaP" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="jButtonGenHMap" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="jToggleButton1" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace pref="312" max="32767" attributes="0"/>
                   </Group>
@@ -273,7 +274,9 @@
                       <Component id="jCheckBoxRVelErr" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="jButtonGenHMap" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace pref="121" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jToggleButton1" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="92" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -323,6 +326,11 @@
             <Component class="javax.swing.JCheckBox" name="jCheckBoxResTime">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Residence Time"/>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JToggleButton" name="jToggleButton1">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="jToggleButton1"/>
               </Properties>
             </Component>
           </SubComponents>

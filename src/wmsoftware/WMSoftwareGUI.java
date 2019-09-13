@@ -19,6 +19,7 @@ import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -135,6 +136,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         jCheckBoxRVelErr = new javax.swing.JCheckBox();
         jButtonGenHMap = new javax.swing.JButton();
         jCheckBoxResTime = new javax.swing.JCheckBox();
+        jToggleButton1 = new javax.swing.JToggleButton();
         jPanel3 = new javax.swing.JPanel();
         jCheckBoxRDistvRVel = new javax.swing.JCheckBox();
         jCheckBoxRDistvRVelaP = new javax.swing.JCheckBox();
@@ -280,6 +282,8 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 
         jCheckBoxResTime.setText("Residence Time");
 
+        jToggleButton1.setText("jToggleButton1");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -294,7 +298,8 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     .addComponent(jCheckBoxRDist)
                     .addComponent(jCheckBoxRVel)
                     .addComponent(jCheckBoxRVelaP)
-                    .addComponent(jButtonGenHMap))
+                    .addComponent(jButtonGenHMap)
+                    .addComponent(jToggleButton1))
                 .addContainerGap(312, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -316,7 +321,9 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                 .addComponent(jCheckBoxRVelErr)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButtonGenHMap)
-                .addContainerGap(121, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jToggleButton1)
+                .addContainerGap(92, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Generate Maps", jPanel2);
@@ -503,7 +510,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                 XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
 
                 for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-                    ArrayList result = new ArrayList<>();
+                    ArrayList<Float> result = new ArrayList<>();
                     HashMap resultHMap = new HashMap<>();
                     String resultName = "";
                     switch (i) {
@@ -540,9 +547,8 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
                     resultHMap.put(mouse, result);
                     ds.setHMap(resultName, resultHMap);
-//                    System.out.print(resultName + ": " + mouse + "\n");
-                    ip = map.generateHeatMap(map.measureHeatMap(series, result));
-//                            map.show(ip);
+                    ip = map.generateHeatMap(map.averageAcrossPixel(series, result));
+                    map.show(ip);
                     map.saveHeatMap(resultName + "M" + mouse, ip);
                     if (i == Integer.MAX_VALUE) {
                         break;
@@ -629,16 +635,19 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         }
 
         private ArrayList<Float> resTime(XYSeries series) {
+            ArrayList<Float> temp = new ArrayList<>();
             ArrayList<Float> result = new ArrayList<>();
+
             //initalise resTime with zeros for an image with dimensions 240,240
             for (int count = 0; count <= (240 * 240); count++) {
-                result.add(0f);
+                temp.add(0f);
             }
             for (int i = 0; i < series.getItemCount(); i++) {
                 float XPo = series.getX(i).floatValue();
                 float YPo = series.getY(i).floatValue();
                 int arrayIdx = ((Math.round(YPo) * 240) + Math.round(XPo));
-                result.set(arrayIdx, (result.get(arrayIdx) + 10)); //increment intensity by 10
+                temp.set(arrayIdx, (temp.get(arrayIdx) + 10)); // increment is by  5 because we average across pixel? FIGURE IT OUT.
+                result.add(i, (temp.get(arrayIdx)));
             }
             return result;
         }
@@ -774,38 +783,6 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         }
     }
 
-    private XYSeries binSeriesinX(double binWidth, XYSeries Series) {
-        XYSeries binnedData = new XYSeries(Series.getKey());
-        double binStart = (double) Series.getX(0).doubleValue();
-        double binEnd = binStart + binWidth;
-        double halfbinWidth = binWidth / 2;
-        double binCtr = binStart + halfbinWidth;
-        double sum = binStart;
-        int count = 1;
-
-        for (int i = 0; i < Series.getItemCount(); i++) {
-
-            double curX = Series.getX(i).doubleValue();
-            double curY = Series.getY(i).doubleValue();
-
-            if (binStart <= curX && curX < binEnd) {
-                sum += curY;
-                count++;
-            } else {
-                double yData = sum / count;
-                binnedData.add(binCtr, sum / count);
-                sum = curY;
-                count = 1;
-                binStart = curX;
-                binCtr = binStart + halfbinWidth;
-                binEnd = binStart + binWidth;
-            }
-        }
-
-        return binnedData;
-
-    }
-
     private class Maps {
 
         private Maps() {
@@ -821,13 +798,13 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             new FileSaver(imp).saveAsTiff(dir.getPath() + File.separator + imp.getTitle() + ".tif");
         }
 
-        private ArrayList<Float> measureHeatMap(XYSeries curSeries, ArrayList<Float> M) {
+        private ArrayList<Float> averageAcrossPixel(XYSeries curSeries, ArrayList<Float> M) {
             //initalise resTime with zeros for an image with dimensions 240,240
             ArrayList<Float> result = new ArrayList<>();
             for (int count = 0; count < (240 * 240); count++) {
                 result.add(0.0f);
             }
-            for (int j = 0; j < curSeries.getItemCount() - 1; j++) {
+            for (int j = 0; j < curSeries.getItemCount() - 1; j++) { //removed -1 from curSeries.getItemCount()
                 float XPo = curSeries.getX(j).floatValue();
                 float YPo = curSeries.getY(j).floatValue();
                 int arrayIdx = ((Math.round(YPo) * 240) + Math.round(XPo));
@@ -864,7 +841,6 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             XYDataset dataset = createDataset();
             // Create chart
             JFreeChart chart = ChartFactory.createScatterPlot(
-                    //title
                     title,
                     "X-Axis", "Y-Axis", dataset);
 
@@ -900,6 +876,38 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             this.setLocationRelativeTo(null);
             this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             this.setVisible(true);
+        }
+
+        private XYSeries binSeriesinX(double binWidth, XYSeries Series) {
+            XYSeries binnedData = new XYSeries(Series.getKey());
+            double binStart = (double) Series.getX(0).doubleValue();
+            double binEnd = binStart + binWidth;
+            double halfbinWidth = binWidth / 2;
+            double binCtr = binStart + halfbinWidth;
+            double sum = binStart;
+            int count = 1;
+
+            for (int i = 0; i < Series.getItemCount(); i++) {
+
+                double curX = Series.getX(i).doubleValue();
+                double curY = Series.getY(i).doubleValue();
+
+                if (binStart <= curX && curX < binEnd) {
+                    sum += curY;
+                    count++;
+                } else {
+                    double yData = sum / count;
+                    binnedData.add(binCtr, sum / count);
+                    sum = curY;
+                    count = 1;
+                    binStart = curX;
+                    binCtr = binStart + halfbinWidth;
+                    binEnd = binStart + binWidth;
+                }
+            }
+
+            return binnedData;
+
         }
 
         //TO DO: Code for saving chart plot using ChartUtils from jfreechart. confirm what format to save the plot in.
@@ -987,5 +995,6 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
     private javax.swing.JTextField jTextFieldBinX;
     private javax.swing.JTextField jTextFieldTotalMiceNo;
     private javax.swing.JTextField jTextFieldTrials;
+    private javax.swing.JToggleButton jToggleButton1;
     // End of variables declaration//GEN-END:variables
 }
