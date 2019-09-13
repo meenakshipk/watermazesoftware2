@@ -144,7 +144,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         jCheckBoxRDistvRVelErr = new javax.swing.JCheckBox();
         jLabelPlots = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        jTextFieldBinX = new javax.swing.JTextField();
+        jTextFieldUserBin = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         jRadioButtonIndividualMiceTrials = new javax.swing.JRadioButton();
         jRadioButtonGroupMice = new javax.swing.JRadioButton();
@@ -341,7 +341,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 
         jLabel5.setText("Enter bin width in X:");
 
-        jTextFieldBinX.setText("0.00");
+        jTextFieldUserBin.setText("0.00");
 
         jLabel6.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
         jLabel6.setText("Group data by:");
@@ -377,7 +377,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jLabel5)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextFieldBinX, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jTextFieldUserBin, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jLabel6)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jRadioButtonIndividualMiceTrials)
@@ -394,7 +394,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                 .addGap(27, 27, 27)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
-                    .addComponent(jTextFieldBinX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jTextFieldUserBin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -544,10 +544,11 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.velErr(series);
                             break;
                     }
+                    result = map.averageAcrossPixel(series, result);
                     resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
                     resultHMap.put(mouse, result);
                     ds.setHMap(resultName, resultHMap);
-                    ip = map.generateHeatMap(map.averageAcrossPixel(series, result));
+                    ip = map.generateHeatMap(result);
                     map.show(ip);
                     map.saveHeatMap(resultName + "M" + mouse, ip);
                     if (i == Integer.MAX_VALUE) {
@@ -566,6 +567,9 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         bs.set(1, jCheckBoxRDistvRVelaP.isSelected());
         bs.set(2, jCheckBoxRDistvRVelpP.isSelected());
         bs.set(3, jCheckBoxRDistvRVelErr.isSelected());
+
+        //bin size for binning values
+        userBin = Double.parseDouble(jTextFieldUserBin.getText());
 
 //        //Select directory to store files
 //        JFileChooser Fc = new JFileChooser();
@@ -611,11 +615,14 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.velErr(series);
                             break;
                     }
+                    sp = new ScatterPlot(resultName + "M" + mouse);
+                    XYSeries resultSeries = sp.convertData(resultName, resultDist, result);
+                    sp.addData(sp.binSeriesinX(userBin, resultSeries));
+                    //make a LOCAL hashmap to store xyseries (instead of arraylists). call from this local hashmap for calculating average mouse data???
                     resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
                     resultHMap.put(mouse, result);
                     ds.setHMap(resultName, resultHMap);
-                    sp = new ScatterPlot(resultName + "M" + mouse);
-                    sp.addData(sp.convertData(resultName, resultDist, result));
+
                     sp.showPlot();
                     //TO DO: Add code to save plot once code completed in Class ScatterPlot, something like
                     //sp.save();
@@ -992,9 +999,9 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
     private javax.swing.JRadioButton jRadioButtonGroupTrials;
     private javax.swing.JRadioButton jRadioButtonIndividualMiceTrials;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextField jTextFieldBinX;
     private javax.swing.JTextField jTextFieldTotalMiceNo;
     private javax.swing.JTextField jTextFieldTrials;
+    private javax.swing.JTextField jTextFieldUserBin;
     private javax.swing.JToggleButton jToggleButton1;
     // End of variables declaration//GEN-END:variables
 }
