@@ -32,6 +32,7 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.title.TextTitle;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
@@ -49,7 +50,6 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
     private DataStore[] dss;
     private Component frame;
     private double userBin;
-    private BitSet bs = new BitSet(10);
 
     /**
      * Creates new form WMSoftwareGUI
@@ -133,7 +133,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         jCheckBoxRVelaP = new javax.swing.JCheckBox();
         jCheckBoxRVelpP = new javax.swing.JCheckBox();
         jCheckBoxRVelErr = new javax.swing.JCheckBox();
-        jButton2 = new javax.swing.JButton();
+        jButtonGenHMap = new javax.swing.JButton();
         jCheckBoxResTime = new javax.swing.JCheckBox();
         jPanel3 = new javax.swing.JPanel();
         jCheckBoxRDistvRVel = new javax.swing.JCheckBox();
@@ -271,10 +271,10 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 
         jCheckBoxRVelErr.setText("R-Velocity Errors");
 
-        jButton2.setText("jButton2");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        jButtonGenHMap.setText("Generate Heat Maps");
+        jButtonGenHMap.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                jButtonGenHMapActionPerformed(evt);
             }
         });
 
@@ -294,7 +294,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     .addComponent(jCheckBoxRDist)
                     .addComponent(jCheckBoxRVel)
                     .addComponent(jCheckBoxRVelaP)
-                    .addComponent(jButton2))
+                    .addComponent(jButtonGenHMap))
                 .addContainerGap(312, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -315,7 +315,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jCheckBoxRVelErr)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton2)
+                .addComponent(jButtonGenHMap)
                 .addContainerGap(121, Short.MAX_VALUE))
         );
 
@@ -477,8 +477,10 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         JOptionPane.showMessageDialog(frame, "Files read.", "Task completed", JOptionPane.INFORMATION_MESSAGE);
     }//GEN-LAST:event_jButtonReadFilesActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void jButtonGenHMapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonGenHMapActionPerformed
         //BitSet for the checkboxes
+        BitSet bs = new BitSet(6);
+
         bs.set(0, jCheckBoxResTime.isSelected());
         bs.set(1, jCheckBoxRDist.isSelected());
         bs.set(2, jCheckBoxRVel.isSelected());
@@ -503,88 +505,121 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                 for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
                     ArrayList result = new ArrayList<>();
                     HashMap resultHMap = new HashMap<>();
+                    String resultName = "";
                     switch (i) {
                         case 0: //residence time
-                            resultHMap = ds.getHMap("Residence Time") == null ? new HashMap<>() : ds.getHMap("Residence Time");
+                            resultName = "Residence Time";
                             result = m.resTime(series);
-                            resultHMap.put(mouse, result);
-                            ds.setHMap("Residence Time", resultHMap);
-//                            System.out.print("Res time :" + mouse + "\n");
-                            ip = map.generateHeatMap(result);
-//                            map.show(ip);
-                            map.saveHeatMap("ResidenceTime_M" + mouse, ip);
-
                             break;
 
                         case 1: //rdist
-                            resultHMap = ds.getHMap("Distance") == null ? new HashMap<>() : ds.getHMap("Distance");
+                            resultName = "Distance";
                             result = m.dist(series);
-                            resultHMap.put(mouse, result);
-                            ds.setHMap("Distance", resultHMap);
-//                            System.out.print("Distance: " + mouse + "\n");
-                            ip = map.generateHeatMap(map.measureHeatMap(series, result));
-//                            map.show(ip);
-                            map.saveHeatMap("Distance_M" + mouse, ip);
                             break;
 
                         case 2: //rvel
-                            resultHMap = ds.getHMap("Velocity") == null ? new HashMap<>() : ds.getHMap("Velocity");
+                            resultName = "Velocity";
                             result = m.vel(series);
-                            resultHMap.put(mouse, result);
-                            ds.setHMap("Velocity", resultHMap);
-//                            System.out.print("Velocity: " + mouse + "\n");
-                            ip = map.generateHeatMap(map.measureHeatMap(series, result));
-//                            map.show(ip);
-                            map.saveHeatMap("Velocity_M" + mouse, ip);
                             break;
 
                         case 3: //rvel along pt
-                            resultHMap = ds.getHMap("Velocity along Pt") == null ? new HashMap<>() : ds.getHMap("Velocity along Pt");
+                            resultName = "Velocity along Platform";
                             result = m.velComponent(series, "cos");
-                            resultHMap.put(mouse, result);
-                            ds.setHMap("Velocity along Pt", resultHMap);
-//                            System.out.print("Velocity along Pt: " + mouse + "\n");
-                            ip = map.generateHeatMap(map.measureHeatMap(series, result));
-//                            map.show(ip);
-                            map.saveHeatMap("VelocityAlongPt_M" + mouse, ip);
                             break;
 
                         case 4:
-                            resultHMap = ds.getHMap("Velocity perpendicular Pt") == null ? new HashMap<>() : ds.getHMap("Velocity perpendicular Pt");
+                            resultName = "Velocity perpendicular Platform";
                             result = m.velComponent(series, "sin");
-                            resultHMap.put(mouse, result);
-                            ds.setHMap("Velocity perpendicular Pt", resultHMap);
-//                            System.out.print("Velocity perpendicular Pt: " + mouse + "\n");
-                            ip = map.generateHeatMap(map.measureHeatMap(series, result));
-//                            map.show(ip);
-                            map.saveHeatMap("VelocityPerpendPt_M" + mouse, ip);
                             break;
 
                         case 5:
-                            resultHMap = ds.getHMap("Velocity Error") == null ? new HashMap<>() : ds.getHMap("Velocity Error");
+                            resultName = "Velocity Error";
                             result = m.velErr(series);
-                            resultHMap.put(mouse, result);
-                            ds.setHMap("Velocity Error", resultHMap);
-//                            System.out.print("Velocity Error: " + mouse + "\n");
-                            ip = map.generateHeatMap(map.measureHeatMap(series, result));
-//                            map.show(ip);
-                            map.saveHeatMap("VelocityError_M" + mouse, ip);
                             break;
                     }
+                    resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
+                    resultHMap.put(mouse, result);
+                    ds.setHMap(resultName, resultHMap);
+//                    System.out.print(resultName + ": " + mouse + "\n");
+                    ip = map.generateHeatMap(map.measureHeatMap(series, result));
+//                            map.show(ip);
+                    map.saveHeatMap(resultName + "M" + mouse, ip);
                     if (i == Integer.MAX_VALUE) {
                         break;
                     }
                 }
             }
         }
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_jButtonGenHMapActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         // TODO add your handling code here:
-        bs.set(6, jCheckBoxRDistvRVelErr.isSelected());
-        bs.set(7, jCheckBoxRDistvRVel.isSelected());
-        bs.set(8, jCheckBoxRDistvRVelaP.isSelected());
-        bs.set(9, jCheckBoxRDistvRVelpP.isSelected());
+        BitSet bs = new BitSet(4);
+
+        bs.set(0, jCheckBoxRDistvRVel.isSelected());
+        bs.set(1, jCheckBoxRDistvRVelaP.isSelected());
+        bs.set(2, jCheckBoxRDistvRVelpP.isSelected());
+        bs.set(3, jCheckBoxRDistvRVelErr.isSelected());
+
+//        //Select directory to store files
+//        JFileChooser Fc = new JFileChooser();
+//        Fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+//        Fc.showOpenDialog(this);
+//        dir = Fc.getSelectedFile();
+        Measures m = new Measures();
+        ScatterPlot sp = null;
+//        ScatterPlot sp = new ScatterPlot("");
+
+        for (DataStore ds : dss) {
+            for (int mouse = 0; mouse < ds.getMice().length; mouse++) {
+                XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
+                HashMap resultDistHMap = ds.getHMap("Distance") == null ? new HashMap<>() : ds.getHMap("Distance");
+                ArrayList<Float> resultDist = m.dist(series);
+                resultDistHMap.put(mouse, resultDist);
+                ds.setHMap("Distance", resultDistHMap);
+                System.out.print("Distance: " + mouse + "\n");
+
+                for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+                    ArrayList result = new ArrayList<>();
+                    HashMap resultHMap = new HashMap<>();
+                    String resultName = "";
+                    switch (i) {
+
+                        case 0: //rvel
+                            resultName = "Velocity";
+                            result = m.vel(series);
+                            break;
+
+                        case 1: //rvel along pt
+                            resultName = "Velocity along Platform";
+                            result = m.velComponent(series, "cos");
+                            break;
+
+                        case 2:
+                            resultName = "Velocity perpendicular Platform";
+                            result = m.velComponent(series, "sin");
+                            break;
+
+                        case 3:
+                            resultName = "Velocity Error";
+                            result = m.velErr(series);
+                            break;
+                    }
+                    resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
+                    resultHMap.put(mouse, result);
+                    ds.setHMap(resultName, resultHMap);
+                    sp = new ScatterPlot(resultName + "M" + mouse);
+                    sp.addData(sp.convertData(resultName, resultDist, result));
+                    sp.showPlot();
+                    //TO DO: Add code to save plot once code completed in Class ScatterPlot, something like
+                    //sp.save();
+
+                    if (i == Integer.MAX_VALUE) {
+                        break;
+                    }
+                }
+            }
+        }
 
     }//GEN-LAST:event_jButton3ActionPerformed
 
@@ -825,13 +860,11 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 
         private ScatterPlot(String title) {
             super(title);
-            XYSeries Series = new XYSeries("default");
             // Create dataset
-//            XYDataset dataset = createDataset();
-            dataset = this.createDataset(Series);
-
+            XYDataset dataset = createDataset();
             // Create chart
             JFreeChart chart = ChartFactory.createScatterPlot(
+                    //title
                     title,
                     "X-Axis", "Y-Axis", dataset);
 
@@ -844,21 +877,21 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             setContentPane(panel);
         }
 
-        private XYSeriesCollection createDataset(XYSeries Series) {
-            XYSeriesCollection dataset2 = new XYSeriesCollection();
-            dataset2.addSeries(Series);
-            return dataset2;
-        }
-
-        public XYSeriesCollection addDatasetPlot(XYSeries Series) {
-            dataset.addSeries(Series);
+        private XYDataset createDataset() {
+            dataset = new XYSeriesCollection();
             return dataset;
         }
 
-        public XYSeriesCollection datasetPlot(XYSeriesCollection seriesCollection) {
-            for (int i = 0; i < seriesCollection.getSeriesCount(); i++) {
-                dataset.addSeries(seriesCollection.getSeries(i));
+        private XYSeries convertData(String name, ArrayList<Float> ar1, ArrayList<Float> ar2) {
+            XYSeries series = new XYSeries(name, true);
+            for (int i = 0; i < ar1.size() && i < ar2.size(); i++) {
+                series.add(ar1.get(i), ar2.get(i));
             }
+            return series;
+        }
+
+        public XYSeriesCollection addData(XYSeries Series) {
+            dataset.addSeries(Series);
             return dataset;
         }
 
@@ -868,21 +901,11 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             this.setVisible(true);
         }
+
+        //TO DO: Code for saving chart plot using ChartUtils from jfreechart. confirm what format to save the plot in.
+        //TO DO: Figure out how to change the title of the plot :(
     }
 
-//    private XYSeriesCollection arrayListToXYSeriesCollection(ArrayList<Float> ar1, ArrayList<Float> ar2, XYSeries Series, XYSeriesCollection SeriesCollection) {
-//        //Use format Series = new XYSeries((String.valueOf(trial) + String.valueOf(mouse) + String.valueOf(measure)), true);
-//        for (int k = 0; k < ar2.size(); k++) {
-//            Series.add(ar1.get(k), ar2.get(k));
-//        }
-//        //binData
-//        userBin = Double.parseDouble(jTextFieldBinX.getText());
-//        Series = this.binSeriesinX(userBin, Series);
-//        //Store series in seriesCollection
-//        SeriesCollection.addSeries(Series);
-//
-//        return SeriesCollection;
-//    }
     /**
      * @param args the command line arguments
      */
@@ -930,8 +953,8 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupPlotGroupDataBy;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButtonGenHMap;
     private javax.swing.JButton jButtonReadFiles;
     private javax.swing.JButton jButtonUploadFiles;
     private javax.swing.JCheckBox jCheckBoxRDist;

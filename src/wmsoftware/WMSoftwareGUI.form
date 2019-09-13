@@ -248,7 +248,7 @@
                           <Component id="jCheckBoxRDist" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="jCheckBoxRVel" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="jCheckBoxRVelaP" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="jButton2" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="jButtonGenHMap" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace pref="312" max="32767" attributes="0"/>
                   </Group>
@@ -272,7 +272,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jCheckBoxRVelErr" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="jButton2" min="-2" max="-2" attributes="0"/>
+                      <Component id="jButtonGenHMap" min="-2" max="-2" attributes="0"/>
                       <EmptySpace pref="121" max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -312,12 +312,12 @@
                 <Property name="text" type="java.lang.String" value="R-Velocity Errors"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JButton" name="jButton2">
+            <Component class="javax.swing.JButton" name="jButtonGenHMap">
               <Properties>
-                <Property name="text" type="java.lang.String" value="jButton2"/>
+                <Property name="text" type="java.lang.String" value="Generate Heat Maps"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonGenHMapActionPerformed"/>
               </Events>
             </Component>
             <Component class="javax.swing.JCheckBox" name="jCheckBoxResTime">
