@@ -147,7 +147,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         jRadioButtonIndividualMiceTrials = new javax.swing.JRadioButton();
         jRadioButtonGroupMice = new javax.swing.JRadioButton();
         jRadioButtonGroupTrials = new javax.swing.JRadioButton();
-        jButton3 = new javax.swing.JButton();
+        jButtonGenPlot = new javax.swing.JButton();
 
         jDialog1.setTitle("Select files");
         jDialog1.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -348,10 +348,10 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         buttonGroupPlotGroupDataBy.add(jRadioButtonGroupTrials);
         jRadioButtonGroupTrials.setText("Group by trials");
 
-        jButton3.setText("jButton3");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        jButtonGenPlot.setText("Generate Plots");
+        jButtonGenPlot.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                jButtonGenPlotActionPerformed(evt);
             }
         });
 
@@ -378,7 +378,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                         .addComponent(jRadioButtonGroupMice)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jRadioButtonGroupTrials))
-                    .addComponent(jButton3))
+                    .addComponent(jButtonGenPlot))
                 .addContainerGap(178, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
@@ -406,7 +406,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jCheckBoxRDistvRVelErr)
                 .addGap(18, 18, 18)
-                .addComponent(jButton3)
+                .addComponent(jButtonGenPlot)
                 .addGap(65, 65, 65))
         );
 
@@ -552,7 +552,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonGenHMapActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void jButtonGenPlotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonGenPlotActionPerformed
         // TODO add your handling code here:
         BitSet bs = new BitSet(4);
 
@@ -621,7 +621,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             }
         }
 
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_jButtonGenPlotActionPerformed
 
     private class Measures {
 
@@ -953,8 +953,8 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroupPlotGroupDataBy;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton3;
     private javax.swing.JButton jButtonGenHMap;
+    private javax.swing.JButton jButtonGenPlot;
     private javax.swing.JButton jButtonReadFiles;
     private javax.swing.JButton jButtonUploadFiles;
     private javax.swing.JCheckBox jCheckBoxRDist;

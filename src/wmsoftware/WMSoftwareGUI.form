@@ -360,7 +360,7 @@
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="jRadioButtonGroupTrials" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="jButton3" alignment="0" min="-2" max="-2" attributes="0"/>
+                          <Component id="jButtonGenPlot" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace pref="178" max="32767" attributes="0"/>
                   </Group>
@@ -393,7 +393,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jCheckBoxRDistvRVelErr" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="jButton3" min="-2" max="-2" attributes="0"/>
+                      <Component id="jButtonGenPlot" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="65" max="-2" attributes="0"/>
                   </Group>
               </Group>
@@ -470,12 +470,12 @@
                 <Property name="text" type="java.lang.String" value="Group by trials"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JButton" name="jButton3">
+            <Component class="javax.swing.JButton" name="jButtonGenPlot">
               <Properties>
-                <Property name="text" type="java.lang.String" value="jButton3"/>
+                <Property name="text" type="java.lang.String" value="Generate Plots"/>
               </Properties>
               <Events>
-                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton3ActionPerformed"/>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButtonGenPlotActionPerformed"/>
               </Events>
             </Component>
           </SubComponents>
