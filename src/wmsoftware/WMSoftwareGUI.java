@@ -18,6 +18,8 @@ import javax.swing.JOptionPane;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import static java.lang.Float.NaN;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -56,52 +58,8 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
      * Creates new form WMSoftwareGUI
      */
     public WMSoftwareGUI() {
-//        this.listenerMeasures = new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                JCheckBox checkbox = (JCheckBox) e.getSource();
-//                System.out.print(checkbox + "\n");
-//                if (checkbox == jCheckBoxRVel) {
-//                    if (jCheckBoxRDist.isSelected()) {
-//                        System.out.println("jCheckBoxRDist is checked");
-//                    }
-//                } else if (checkbox == jCheckBoxRVel) {
-//                    System.out.println("jCheckBoxRVel is clicked");
-//                } else if (checkbox == jCheckBoxRVelaP) {
-//                    System.out.println("jCheckBoxRVelaP is clicked");
-//                }
-////                if () {
-////                    System.out.print("Check: When measures selected" + measure + "\n");
-////                    // do something if check box is selected
-////                } else {
-////                    // check box is unselected, do something else
-////                    System.out.print("UNCheck: When measures was de-selected" + measure + "\n");
-////                    
-////                }
-//            }
-//        };
         initComponents();
-//        //part of initialise components
-//
-//        jCheckBoxRDist.addActionListener(listenerMeasures);
-//
-//        jCheckBoxRVel.addActionListener(listenerMeasures);
-//
-//        jCheckBoxRVelaP.addActionListener(listenerMeasures);
-//
-//        jCheckBoxRVelpP.addActionListener(listenerMeasures);
-//
-//        jCheckBoxRVelErr.addActionListener(listenerMeasures);
-////        measures.put(jCheckBoxRDist, "value of jCheckBoxRDist");
-////        measures.put(jCheckBoxRVel, "value of jCheckBoxRVel");
-////        measures.put(jCheckBoxRVelaP, "value of jCheckBoxRVelaP");
-////        measures.put(jCheckBoxRVelpP, "value of jCheckBoxRVelpP");
-////        measures.put(jCheckBoxRVelErr, "value of jCheckBoxRVelErr");
-//
         jComboBoxTrialNo.removeAllItems();
-
-        jRadioButtonIndividualMiceTrials.setSelected(
-                true);
     }
 
     /**
@@ -136,7 +94,9 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         jCheckBoxRVelErr = new javax.swing.JCheckBox();
         jButtonGenHMap = new javax.swing.JButton();
         jCheckBoxResTime = new javax.swing.JCheckBox();
-        jToggleButton1 = new javax.swing.JToggleButton();
+        jLabel7 = new javax.swing.JLabel();
+        jCheckBoxIndividualMouse1 = new javax.swing.JCheckBox();
+        jCheckBoxAveMouse1 = new javax.swing.JCheckBox();
         jPanel3 = new javax.swing.JPanel();
         jCheckBoxRDistvRVel = new javax.swing.JCheckBox();
         jCheckBoxRDistvRVelaP = new javax.swing.JCheckBox();
@@ -145,11 +105,10 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         jLabelPlots = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         jTextFieldUserBin = new javax.swing.JTextField();
-        jLabel6 = new javax.swing.JLabel();
-        jRadioButtonIndividualMiceTrials = new javax.swing.JRadioButton();
-        jRadioButtonGroupMice = new javax.swing.JRadioButton();
-        jRadioButtonGroupTrials = new javax.swing.JRadioButton();
         jButtonGenPlot = new javax.swing.JButton();
+        jLabel8 = new javax.swing.JLabel();
+        jCheckBoxIndividualMouse2 = new javax.swing.JCheckBox();
+        jCheckBoxAveMouse2 = new javax.swing.JCheckBox();
 
         jDialog1.setTitle("Select files");
         jDialog1.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
@@ -282,7 +241,12 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 
         jCheckBoxResTime.setText("Residence Time");
 
-        jToggleButton1.setText("jToggleButton1");
+        jLabel7.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel7.setText("Output data:");
+
+        jCheckBoxIndividualMouse1.setText("Individual mouse");
+
+        jCheckBoxAveMouse1.setText("Average mouse");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -299,8 +263,12 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     .addComponent(jCheckBoxRVel)
                     .addComponent(jCheckBoxRVelaP)
                     .addComponent(jButtonGenHMap)
-                    .addComponent(jToggleButton1))
-                .addContainerGap(312, Short.MAX_VALUE))
+                    .addComponent(jLabel7)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jCheckBoxIndividualMouse1)
+                        .addGap(18, 18, 18)
+                        .addComponent(jCheckBoxAveMouse1)))
+                .addContainerGap(285, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -320,10 +288,14 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jCheckBoxRVelErr)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel7)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCheckBoxIndividualMouse1)
+                    .addComponent(jCheckBoxAveMouse1))
+                .addGap(7, 7, 7)
                 .addComponent(jButtonGenHMap)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jToggleButton1)
-                .addContainerGap(92, Short.MAX_VALUE))
+                .addContainerGap(70, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Generate Maps", jPanel2);
@@ -343,24 +315,19 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 
         jTextFieldUserBin.setText("0.00");
 
-        jLabel6.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
-        jLabel6.setText("Group data by:");
-
-        buttonGroupPlotGroupDataBy.add(jRadioButtonIndividualMiceTrials);
-        jRadioButtonIndividualMiceTrials.setText("Individual mice and trials");
-
-        buttonGroupPlotGroupDataBy.add(jRadioButtonGroupMice);
-        jRadioButtonGroupMice.setText("Group by mice");
-
-        buttonGroupPlotGroupDataBy.add(jRadioButtonGroupTrials);
-        jRadioButtonGroupTrials.setText("Group by trials");
-
         jButtonGenPlot.setText("Generate Plots");
         jButtonGenPlot.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButtonGenPlotActionPerformed(evt);
             }
         });
+
+        jLabel8.setFont(new java.awt.Font("Tahoma", 1, 11)); // NOI18N
+        jLabel8.setText("Output data:");
+
+        jCheckBoxIndividualMouse2.setText("Individual mouse");
+
+        jCheckBoxAveMouse2.setText("Average mouse");
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -378,15 +345,13 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                         .addComponent(jLabel5)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextFieldUserBin, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel6)
+                    .addComponent(jButtonGenPlot)
+                    .addComponent(jLabel8)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jRadioButtonIndividualMiceTrials)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jRadioButtonGroupMice)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jRadioButtonGroupTrials))
-                    .addComponent(jButtonGenPlot))
-                .addContainerGap(178, Short.MAX_VALUE))
+                        .addComponent(jCheckBoxIndividualMouse2)
+                        .addGap(18, 18, 18)
+                        .addComponent(jCheckBoxAveMouse2)))
+                .addContainerGap(242, Short.MAX_VALUE))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -395,14 +360,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
                     .addComponent(jTextFieldUserBin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel6)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jRadioButtonIndividualMiceTrials)
-                    .addComponent(jRadioButtonGroupMice)
-                    .addComponent(jRadioButtonGroupTrials))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 10, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabelPlots)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jCheckBoxRDistvRVel)
@@ -412,7 +370,13 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                 .addComponent(jCheckBoxRDistvRVelpP)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jCheckBoxRDistvRVelErr)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jCheckBoxIndividualMouse2)
+                    .addComponent(jCheckBoxAveMouse2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
                 .addComponent(jButtonGenPlot)
                 .addGap(65, 65, 65))
         );
@@ -485,6 +449,8 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonReadFilesActionPerformed
 
     private void jButtonGenHMapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonGenHMapActionPerformed
+//NOTES: 15.09.2019 - Check vel along pt and vel perpendicular to pt. individual images look odd (as a result, so does average mouse image)
+
         //BitSet for the checkboxes
         BitSet bs = new BitSet(6);
 
@@ -505,14 +471,17 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         Maps map = new Maps();
         ImageProcessor ip = null;
 
-        for (DataStore ds : dss) {
-            for (int mouse = 0; mouse < ds.getMice().length; mouse++) {
-                XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
 
-                for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+            for (DataStore ds : dss) {
+                String resultName = "";
+
+                int size = ds.getMiceNo();
+                for (int mouse = 0; mouse < size; mouse++) {
+                    XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
+
                     ArrayList<Float> result = new ArrayList<>();
                     HashMap resultHMap = new HashMap<>();
-                    String resultName = "";
                     switch (i) {
                         case 0: //residence time
                             resultName = "Residence Time";
@@ -544,17 +513,58 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.velErr(series);
                             break;
                     }
-                    result = map.averageAcrossPixel(series, result);
                     resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
                     resultHMap.put(mouse, result);
                     ds.setHMap(resultName, resultHMap);
-                    ip = map.generateHeatMap(result);
-                    map.show(ip);
-                    map.saveHeatMap(resultName + "M" + mouse, ip);
-                    if (i == Integer.MAX_VALUE) {
-                        break;
+
+                    if (jCheckBoxIndividualMouse1.isSelected()) {
+                        float[][] imageArray = map.averageAcrossPixel(series, result);
+                        ip = map.generateHeatMap(imageArray);
+//                        map.show(ip);
+                        map.saveHeatMap(resultName + "_M" + mouse, ip);
                     }
                 }
+
+                if (jCheckBoxAveMouse1.isSelected()) {
+                    Mouse aveM = new Mouse();
+                    aveM.setID(ds.getMiceNo());
+                    ds.setMouse(aveM);
+
+                    int dimX = 240;
+                    int dimY = 240;
+                    float sum[][] = new float[dimX][dimY];
+                    int N[][] = new int[dimX][dimY];
+                    for (int mouse = 0; mouse < size; mouse++) {
+                        XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
+                        ArrayList<Float> nextMouse = (ArrayList<Float>) ds.getHMap(resultName).get(mouse);
+                        float[][] nextMouseArray = map.averageAcrossPixel(series, nextMouse);
+
+                        for (int pixY = 0; pixY < dimY; pixY++) {
+                            for (int pixX = 0; pixX < dimX; pixX++) {
+                                float value = (nextMouseArray[pixX][pixY]);
+                                if (!Float.isNaN(value)) {
+                                    sum[pixX][pixY] = sum[pixX][pixY] + value;
+                                    N[pixX][pixY] = N[pixX][pixY] + 1;
+                                }
+                            }
+                        }
+                    }
+
+                    float[][] aveMouseArray = new float[dimX][dimY];
+                    for (int pixY = 0; pixY < dimY; pixY++) {
+                        for (int pixX = 0; pixX < dimX; pixX++) {
+                            aveMouseArray[pixX][pixY] = sum[pixX][pixY] / N[pixX][pixY];
+                        }
+                    }
+                    //make image and save it
+//                    map.show(ip);
+                    map.saveHeatMap(resultName + "_aveM", ip);
+                }
+                //QUESTION/NOTES/TO DO: Does the avaerage mouse measure values need to be converted to an arraylist and saved in datastore's hashmap?                    ip = map.generateHeatMap(aveMouseArray);
+            }
+
+            if (i == Integer.MAX_VALUE) {
+                break;
             }
         }
     }//GEN-LAST:event_jButtonGenHMapActionPerformed
@@ -578,21 +588,22 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 //        dir = Fc.getSelectedFile();
         Measures m = new Measures();
         ScatterPlot sp = null;
-//        ScatterPlot sp = new ScatterPlot("");
 
-        for (DataStore ds : dss) {
-            for (int mouse = 0; mouse < ds.getMice().length; mouse++) {
-                XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
-                HashMap resultDistHMap = ds.getHMap("Distance") == null ? new HashMap<>() : ds.getHMap("Distance");
-                ArrayList<Float> resultDist = m.dist(series);
-                resultDistHMap.put(mouse, resultDist);
-                ds.setHMap("Distance", resultDistHMap);
-                System.out.print("Distance: " + mouse + "\n");
+        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
 
-                for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+            for (DataStore ds : dss) {
+                String resultName = "";
+
+                int size = ds.getMiceNo();
+                for (int mouse = 0; mouse < size; mouse++) {
+                    XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
+                    HashMap resultDistHMap = ds.getHMap("Distance") == null ? new HashMap<>() : ds.getHMap("Distance");
+                    ArrayList<Float> resultDist = m.dist(series);
+                    resultDistHMap.put(mouse, resultDist);
+                    ds.setHMap("Distance", resultDistHMap);
+
                     ArrayList result = new ArrayList<>();
                     HashMap resultHMap = new HashMap<>();
-                    String resultName = "";
                     switch (i) {
 
                         case 0: //rvel
@@ -615,7 +626,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.velErr(series);
                             break;
                     }
-                    sp = new ScatterPlot(resultName + "M" + mouse);
+                    sp = new ScatterPlot(resultName + "_M" + mouse);
                     XYSeries resultSeries = sp.convertData(resultName, resultDist, result);
                     sp.addData(sp.binSeriesinX(userBin, resultSeries));
                     //make a LOCAL hashmap to store xyseries (instead of arraylists). call from this local hashmap for calculating average mouse data???
@@ -623,14 +634,21 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     resultHMap.put(mouse, result);
                     ds.setHMap(resultName, resultHMap);
 
-                    sp.showPlot();
-                    //TO DO: Add code to save plot once code completed in Class ScatterPlot, something like
-                    //sp.save();
-
-                    if (i == Integer.MAX_VALUE) {
-                        break;
+                    if (jCheckBoxIndividualMouse1.isSelected()) {
+                        sp.showPlot();
+                        //TO DO: Add code to save plot once code completed in Class ScatterPlot, something like
+                        //sp.save();
                     }
                 }
+            }
+            if (jCheckBoxAveMouse1.isSelected()) {
+                //TO DO: Averaging
+                //TO DO: Add code to save plot once code completed in Class ScatterPlot, something like
+                //sp.save();
+            }
+
+            if (i == Integer.MAX_VALUE) {
+                break;
             }
         }
 
@@ -805,35 +823,37 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             new FileSaver(imp).saveAsTiff(dir.getPath() + File.separator + imp.getTitle() + ".tif");
         }
 
-        private ArrayList<Float> averageAcrossPixel(XYSeries curSeries, ArrayList<Float> M) {
-            //initalise resTime with zeros for an image with dimensions 240,240
-            ArrayList<Float> result = new ArrayList<>();
-            for (int count = 0; count < (240 * 240); count++) {
-                result.add(0.0f);
+        private float[][] averageAcrossPixel(XYSeries curSeries, ArrayList<Float> M) {
+            float[][] result = new float[240][240]; //dimensions hardcoded 240*240
+            for (int i = 0; i < result[0].length; i++) {
+                for (int j = 0; j < result[1].length; j++) {
+                    result[i][j] = NaN;
+                }
             }
-            for (int j = 0; j < curSeries.getItemCount() - 1; j++) { //removed -1 from curSeries.getItemCount()
+            int size = curSeries.getItemCount();
+            for (int j = 0; j < size - 2; j++) { //removed -2 from curSeries.getItemCount()
                 float XPo = curSeries.getX(j).floatValue();
                 float YPo = curSeries.getY(j).floatValue();
-                int arrayIdx = ((Math.round(YPo) * 240) + Math.round(XPo));
+                int pixX = Math.round(XPo);
+                int pixY = Math.round(YPo);
+                float idxValue = result[pixX][pixY];
                 float value;
-                if (result.get(arrayIdx) != 0) {
-                    value = ((result.get(arrayIdx) + M.get(j)) / 2);
-                } else {
+                if (Float.isNaN(idxValue)) {
                     value = M.get(j);
+                } else {
+                    value = (idxValue + M.get(j)) / 2;
                 }
-                result.set(arrayIdx, value);
+                result[pixX][pixY] = value;
             }
             return result;
         }
 
-        private ImageProcessor generateHeatMap(ArrayList<Float> Measure) {
-            int width = 240;
-            int height = 240;
+        private ImageProcessor generateHeatMap(float[][] measure) {
+            int width = measure[0].length;
+            int height = measure[1].length;
             ImageProcessor ip = new FloatProcessor(width, height);
 
-            for (int count = 0; count < (240 * 240); count++) {
-                ip.setf(count, Measure.get(count));
-            }
+            ip.setFloatArray(measure);
             return ip;
         }
     }
@@ -972,6 +992,10 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
     private javax.swing.JButton jButtonGenPlot;
     private javax.swing.JButton jButtonReadFiles;
     private javax.swing.JButton jButtonUploadFiles;
+    private javax.swing.JCheckBox jCheckBoxAveMouse1;
+    private javax.swing.JCheckBox jCheckBoxAveMouse2;
+    private javax.swing.JCheckBox jCheckBoxIndividualMouse1;
+    private javax.swing.JCheckBox jCheckBoxIndividualMouse2;
     private javax.swing.JCheckBox jCheckBoxRDist;
     private javax.swing.JCheckBox jCheckBoxRDistvRVel;
     private javax.swing.JCheckBox jCheckBoxRDistvRVelErr;
@@ -989,19 +1013,16 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabelMaps;
     private javax.swing.JLabel jLabelPlots;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JRadioButton jRadioButtonGroupMice;
-    private javax.swing.JRadioButton jRadioButtonGroupTrials;
-    private javax.swing.JRadioButton jRadioButtonIndividualMiceTrials;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextFieldTotalMiceNo;
     private javax.swing.JTextField jTextFieldTrials;
     private javax.swing.JTextField jTextFieldUserBin;
-    private javax.swing.JToggleButton jToggleButton1;
     // End of variables declaration//GEN-END:variables
 }

@@ -25,7 +25,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 public class DataStore {
 
     private File[] fileList;
-    private Mouse[] Mice;
+    private ArrayList<Mouse> Mice = new ArrayList<>();
     private HashMap<Integer, XYSeries> posHMap = null;
     private HashMap<Integer, ArrayList<Integer>> resTimeHMap = null;
     private HashMap<Integer, ArrayList<Float>> distHMap = null;
@@ -40,10 +40,9 @@ public class DataStore {
      * @param files
      */
     public DataStore(int num, File[] files) {
-        Mice = new Mouse[num];
-        for (int i = 0; i < Mice.length; i++) {
-            Mice[i] = new Mouse();
-            Mice[i].setID(i);
+        for (int i = 0; i < num; i++) {
+            Mice.add(i, new Mouse());
+            Mice.get(i).setID(i);
         }
         fileList = files;
     }
@@ -55,17 +54,24 @@ public class DataStore {
      * @return an array of files
      */
     public File[] getFiles() {
-        return this.fileList;
+        return fileList;
     }
 
-    public Mouse[] getMice() {
-        return this.Mice;
+    public int getMiceNo() {
+        return fileList.length;
+    }
+
+    public ArrayList<Mouse> getMiceList() {
+        return Mice;
+    }
+
+    public void setMouse(Mouse M) {
+        Mice.add(M);
     }
 
 //    public int getMiceTotal() {
 //        return this.Mice.length;
 //    }
-
     public HashMap getHMap(String s) {
         HashMap result = null;
         switch (s) {
@@ -81,10 +87,10 @@ public class DataStore {
             case "Velocity":
                 result = velHMap;
                 break;
-            case "Velocity along Pt":
+            case "Velocity along Platform":
                 result = velCosHMap;
                 break;
-            case "Velocity perpendicular Pt":
+            case "Velocity perpendicular Platform":
                 result = velSinHMap;
                 break;
             case "Velocity Error":
@@ -158,7 +164,7 @@ public class DataStore {
                                     dataString += (char) c;
                             }
                         }
-                        posHMap.put(Mice[count].getID(), series);
+                        posHMap.put(Mice.get(count).getID(), series);
                         count = count + 1;
                     } catch (IOException ex) {
                         Logger.getLogger(DataStore.class.getName()).log(Level.SEVERE, null, ex);
