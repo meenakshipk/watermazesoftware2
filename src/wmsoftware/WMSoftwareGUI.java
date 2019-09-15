@@ -8,6 +8,9 @@ package wmsoftware;
 import ij.IJ;
 import ij.io.FileSaver;
 import ij.ImagePlus;
+import ij.gui.Plot;
+import ij.gui.PlotWindow;
+import ij.measure.CurveFitter;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import java.awt.Component;
@@ -560,7 +563,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 //                    map.show(ip);
                     map.saveHeatMap(resultName + "_aveM", ip);
                 }
-                //QUESTION/NOTES/TO DO: Does the avaerage mouse measure values need to be converted to an arraylist and saved in datastore's hashmap?                    ip = map.generateHeatMap(aveMouseArray);
+                //QUESTION/NOTES/TO DO: Does the average mouse measure values need to be converted to an arraylist and saved in datastore's hashmap?                    ip = map.generateHeatMap(aveMouseArray);
             }
 
             if (i == Integer.MAX_VALUE) {
@@ -626,22 +629,48 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.velErr(series);
                             break;
                     }
-                    sp = new ScatterPlot(resultName + "_M" + mouse);
-                    XYSeries resultSeries = sp.convertData(resultName, resultDist, result);
-                    sp.addData(sp.binSeriesinX(userBin, resultSeries));
-                    //make a LOCAL hashmap to store xyseries (instead of arraylists). call from this local hashmap for calculating average mouse data???
-                    resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
-                    resultHMap.put(mouse, result);
-                    ds.setHMap(resultName, resultHMap);
-
-                    if (jCheckBoxIndividualMouse1.isSelected()) {
-                        sp.showPlot();
+//                    sp = new ScatterPlot(resultName + "_M" + mouse);
+//                    XYSeries resultSeries = sp.toXYSeries(resultName, resultDist, result);
+//                    sp.addData(sp.binSeriesinX(userBin, resultSeries));
+//         //           make a LOCAL hashmap to store xyseries (instead of arraylists). call from this local hashmap for calculating average mouse data???
+//          //          resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
+//                    resultHMap.put(mouse, result);
+//                    ds.setHMap(resultName, resultHMap);
+                    System.out.println("Before individual mouse check box.");
+                    if (jCheckBoxIndividualMouse2.isSelected()) {
+//                        sp.showPlot();
                         //TO DO: Add code to save plot once code completed in Class ScatterPlot, something like
                         //sp.save();
+
+                        System.out.println("Before binning.");
+                        XYSeries resultSeries = this.toXYSeries(resultName, resultDist, result);
+                        resultSeries = this.binSeriesinX(userBin, resultSeries);
+                        System.out.println("After binning.");
+                        ArrayList<double[]> Array = this.toArray(resultSeries);
+                        System.out.println("After making xy double arrays.");
+
+                        double[] xData = Array.get(0);
+                        double[] yData = Array.get(1);
+
+                        System.out.println("Before plot.");
+                        Plot spIJ = new Plot("Distance vs " + resultName + ": M_" + mouse, "R-Distance", resultName);
+                        spIJ.add("CIRCLE", xData, yData);
+                        System.out.println("After plot add data.");
+
+                        PlotWindow show = spIJ.show();
+                        System.out.println("After plot show using plotwindow. Before curve fit");
+
+                        CurveFitter cf = new CurveFitter(xData, yData);
+                        int fitCode = CurveFitter.getFitCode("POLY3");
+                        cf.doFit(fitCode);
+                        System.out.println("Fit code: " + fitCode);
+                        System.out.println("Fit formula: " + cf.getFormula());
+                        double[] para = cf.getParams();
+                        System.out.println("Fit parameters: " + Arrays.toString(para));
                     }
                 }
             }
-            if (jCheckBoxAveMouse1.isSelected()) {
+            if (jCheckBoxAveMouse2.isSelected()) {
                 //TO DO: Averaging
                 //TO DO: Add code to save plot once code completed in Class ScatterPlot, something like
                 //sp.save();
@@ -653,6 +682,60 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         }
 
     }//GEN-LAST:event_jButtonGenPlotActionPerformed
+
+    private XYSeries toXYSeries(String name, ArrayList<Float> ar1, ArrayList<Float> ar2) {
+        XYSeries series = new XYSeries(name, true);
+        for (int i = 0; i < ar1.size() && i < ar2.size(); i++) {
+            series.add(ar1.get(i), ar2.get(i));
+        }
+        return series;
+    }
+
+    private XYSeries binSeriesinX(double binWidth, XYSeries Series) {
+        XYSeries binnedData = new XYSeries(Series.getKey());
+        double binStart = (double) Series.getX(0).doubleValue();
+        double binEnd = binStart + binWidth;
+        double halfbinWidth = binWidth / 2;
+        double binCtr = binStart + halfbinWidth;
+        double sum = binStart;
+        int count = 1;
+
+        for (int i = 0; i < Series.getItemCount(); i++) {
+
+            double curX = Series.getX(i).doubleValue();
+            double curY = Series.getY(i).doubleValue();
+
+            if (binStart <= curX && curX < binEnd) {
+                sum += curY;
+                count++;
+            } else {
+                double yData = sum / count;
+                binnedData.add(binCtr, sum / count);
+                sum = curY;
+                count = 1;
+                binStart = curX;
+                binCtr = binStart + halfbinWidth;
+                binEnd = binStart + binWidth;
+            }
+        }
+
+        return binnedData;
+
+    }
+
+    private ArrayList<double[]> toArray(XYSeries series) {
+        ArrayList<double[]> result = new ArrayList<>();
+        double[] resultX = new double[series.getItemCount()];
+        double[] resultY = new double[series.getItemCount()];
+
+        for (int C = 0; C < series.getItemCount(); C++) {
+            resultX[C] = series.getX(C).doubleValue();
+            resultY[C] = series.getY(C).doubleValue();
+        }
+        result.add(resultX);
+        result.add(resultY);
+        return result;
+    }
 
     private class Measures {
 
@@ -885,14 +968,6 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             return dataset;
         }
 
-        private XYSeries convertData(String name, ArrayList<Float> ar1, ArrayList<Float> ar2) {
-            XYSeries series = new XYSeries(name, true);
-            for (int i = 0; i < ar1.size() && i < ar2.size(); i++) {
-                series.add(ar1.get(i), ar2.get(i));
-            }
-            return series;
-        }
-
         public XYSeriesCollection addData(XYSeries Series) {
             dataset.addSeries(Series);
             return dataset;
@@ -903,6 +978,14 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             this.setLocationRelativeTo(null);
             this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
             this.setVisible(true);
+        }
+
+        private XYSeries toXYSeries(String name, ArrayList<Float> ar1, ArrayList<Float> ar2) {
+            XYSeries series = new XYSeries(name, true);
+            for (int i = 0; i < ar1.size() && i < ar2.size(); i++) {
+                series.add(ar1.get(i), ar2.get(i));
+            }
+            return series;
         }
 
         private XYSeries binSeriesinX(double binWidth, XYSeries Series) {
