@@ -11,6 +11,7 @@ import ij.ImagePlus;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
 import ij.measure.CurveFitter;
+import ij.plugin.frame.Fitter;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import java.awt.Component;
@@ -584,13 +585,13 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         //bin size for binning values
         userBin = Double.parseDouble(jTextFieldUserBin.getText());
 
-//        //Select directory to store files
-//        JFileChooser Fc = new JFileChooser();
-//        Fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-//        Fc.showOpenDialog(this);
-//        dir = Fc.getSelectedFile();
+        //Select directory to store files
+        JFileChooser Fc = new JFileChooser();
+        Fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        Fc.showOpenDialog(this);
+        dir = Fc.getSelectedFile();
+
         Measures m = new Measures();
-        ScatterPlot sp = null;
 
         for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
 
@@ -629,19 +630,13 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             result = m.velErr(series);
                             break;
                     }
-//                    sp = new ScatterPlot(resultName + "_M" + mouse);
-//                    XYSeries resultSeries = sp.toXYSeries(resultName, resultDist, result);
-//                    sp.addData(sp.binSeriesinX(userBin, resultSeries));
-//         //           make a LOCAL hashmap to store xyseries (instead of arraylists). call from this local hashmap for calculating average mouse data???
-//          //          resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
-//                    resultHMap.put(mouse, result);
-//                    ds.setHMap(resultName, resultHMap);
+
+                    resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
+                    resultHMap.put(mouse, result);
+                    ds.setHMap(resultName, resultHMap);
+
                     System.out.println("Before individual mouse check box.");
                     if (jCheckBoxIndividualMouse2.isSelected()) {
-//                        sp.showPlot();
-                        //TO DO: Add code to save plot once code completed in Class ScatterPlot, something like
-                        //sp.save();
-
                         System.out.println("Before binning.");
                         XYSeries resultSeries = this.toXYSeries(resultName, resultDist, result);
                         resultSeries = this.binSeriesinX(userBin, resultSeries);
@@ -652,21 +647,30 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                         double[] xData = Array.get(0);
                         double[] yData = Array.get(1);
 
-                        System.out.println("Before plot.");
-                        Plot spIJ = new Plot("Distance vs " + resultName + ": M_" + mouse, "R-Distance", resultName);
-                        spIJ.add("CIRCLE", xData, yData);
-                        System.out.println("After plot add data.");
-
-                        PlotWindow show = spIJ.show();
-                        System.out.println("After plot show using plotwindow. Before curve fit");
-
+//                        System.out.println("Before plot.");
+//                        Plot spIJ = new Plot("Distance vs " + resultName + ": M_" + mouse, "R-Distance", resultName);
+//                        spIJ.add("Circle", xData, yData);
+//                        System.out.println("After plot add data.");
+//
+//                        PlotWindow show = spIJ.show();
+//                        System.out.println("After plot show using plotwindow. Before curve fit");
                         CurveFitter cf = new CurveFitter(xData, yData);
-                        int fitCode = CurveFitter.getFitCode("POLY3");
-                        cf.doFit(fitCode);
-                        System.out.println("Fit code: " + fitCode);
+                        cf.doFit(CurveFitter.POLY2);
+                        System.out.println("Fit code: " + CurveFitter.POLY2);
                         System.out.println("Fit formula: " + cf.getFormula());
                         double[] para = cf.getParams();
                         System.out.println("Fit parameters: " + Arrays.toString(para));
+                        Plot plot = cf.getPlot();
+
+                        plot.setXYLabels("Distance", resultName);
+//                        String title = "Distance vs " + resultName + ": M_" + mouse;
+                        String title = "title name 1";
+                        String title2 = "title name 2";
+                        PlotWindow pw = plot.show();
+                        pw.setTitle(title);
+                        ImagePlus imp = plot.getImagePlus();
+                        imp.setTitle(title2);
+                        new FileSaver(imp).saveAsTiff(dir.getPath() + File.separator + imp.getTitle() + ".tif");
                     }
                 }
             }
@@ -941,89 +945,88 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         }
     }
 
-    private class ScatterPlot extends JFrame {
-
-        XYSeriesCollection dataset = null;
-
-        private ScatterPlot(String title) {
-            super(title);
-            // Create dataset
-            XYDataset dataset = createDataset();
-            // Create chart
-            JFreeChart chart = ChartFactory.createScatterPlot(
-                    title,
-                    "X-Axis", "Y-Axis", dataset);
-
-            //Changes background color
-            XYPlot plot = (XYPlot) chart.getPlot();
-            plot.setBackgroundPaint(new Color(255, 228, 196));
-
-            // Create Panel
-            ChartPanel panel = new ChartPanel(chart);
-            setContentPane(panel);
-        }
-
-        private XYDataset createDataset() {
-            dataset = new XYSeriesCollection();
-            return dataset;
-        }
-
-        public XYSeriesCollection addData(XYSeries Series) {
-            dataset.addSeries(Series);
-            return dataset;
-        }
-
-        public void showPlot() {
-            this.setSize(800, 400);
-            this.setLocationRelativeTo(null);
-            this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-            this.setVisible(true);
-        }
-
-        private XYSeries toXYSeries(String name, ArrayList<Float> ar1, ArrayList<Float> ar2) {
-            XYSeries series = new XYSeries(name, true);
-            for (int i = 0; i < ar1.size() && i < ar2.size(); i++) {
-                series.add(ar1.get(i), ar2.get(i));
-            }
-            return series;
-        }
-
-        private XYSeries binSeriesinX(double binWidth, XYSeries Series) {
-            XYSeries binnedData = new XYSeries(Series.getKey());
-            double binStart = (double) Series.getX(0).doubleValue();
-            double binEnd = binStart + binWidth;
-            double halfbinWidth = binWidth / 2;
-            double binCtr = binStart + halfbinWidth;
-            double sum = binStart;
-            int count = 1;
-
-            for (int i = 0; i < Series.getItemCount(); i++) {
-
-                double curX = Series.getX(i).doubleValue();
-                double curY = Series.getY(i).doubleValue();
-
-                if (binStart <= curX && curX < binEnd) {
-                    sum += curY;
-                    count++;
-                } else {
-                    double yData = sum / count;
-                    binnedData.add(binCtr, sum / count);
-                    sum = curY;
-                    count = 1;
-                    binStart = curX;
-                    binCtr = binStart + halfbinWidth;
-                    binEnd = binStart + binWidth;
-                }
-            }
-
-            return binnedData;
-
-        }
-
-        //TO DO: Code for saving chart plot using ChartUtils from jfreechart. confirm what format to save the plot in.
-        //TO DO: Figure out how to change the title of the plot :(
-    }
-
+//////////    private class ScatterPlot extends JFrame {
+//////////
+//////////        XYSeriesCollection dataset = null;
+//////////
+//////////        private ScatterPlot(String title) {
+//////////            super(title);
+//////////            // Create dataset
+//////////            XYDataset dataset = createDataset();
+//////////            // Create chart
+//////////            JFreeChart chart = ChartFactory.createScatterPlot(
+//////////                    title,
+//////////                    "X-Axis", "Y-Axis", dataset);
+//////////
+//////////            //Changes background color
+//////////            XYPlot plot = (XYPlot) chart.getPlot();
+//////////            plot.setBackgroundPaint(new Color(255, 228, 196));
+//////////
+//////////            // Create Panel
+//////////            ChartPanel panel = new ChartPanel(chart);
+//////////            setContentPane(panel);
+//////////        }
+//////////
+//////////        private XYDataset createDataset() {
+//////////            dataset = new XYSeriesCollection();
+//////////            return dataset;
+//////////        }
+//////////
+//////////        public XYSeriesCollection addData(XYSeries Series) {
+//////////            dataset.addSeries(Series);
+//////////            return dataset;
+//////////        }
+//////////
+//////////        public void showPlot() {
+//////////            this.setSize(800, 400);
+//////////            this.setLocationRelativeTo(null);
+//////////            this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+//////////            this.setVisible(true);
+//////////        }
+//////////
+//////////        private XYSeries toXYSeries(String name, ArrayList<Float> ar1, ArrayList<Float> ar2) {
+//////////            XYSeries series = new XYSeries(name, true);
+//////////            for (int i = 0; i < ar1.size() && i < ar2.size(); i++) {
+//////////                series.add(ar1.get(i), ar2.get(i));
+//////////            }
+//////////            return series;
+//////////        }
+//////////
+//////////        private XYSeries binSeriesinX(double binWidth, XYSeries Series) {
+//////////            XYSeries binnedData = new XYSeries(Series.getKey());
+//////////            double binStart = (double) Series.getX(0).doubleValue();
+//////////            double binEnd = binStart + binWidth;
+//////////            double halfbinWidth = binWidth / 2;
+//////////            double binCtr = binStart + halfbinWidth;
+//////////            double sum = binStart;
+//////////            int count = 1;
+//////////
+//////////            for (int i = 0; i < Series.getItemCount(); i++) {
+//////////
+//////////                double curX = Series.getX(i).doubleValue();
+//////////                double curY = Series.getY(i).doubleValue();
+//////////
+//////////                if (binStart <= curX && curX < binEnd) {
+//////////                    sum += curY;
+//////////                    count++;
+//////////                } else {
+//////////                    double yData = sum / count;
+//////////                    binnedData.add(binCtr, sum / count);
+//////////                    sum = curY;
+//////////                    count = 1;
+//////////                    binStart = curX;
+//////////                    binCtr = binStart + halfbinWidth;
+//////////                    binEnd = binStart + binWidth;
+//////////                }
+//////////            }
+//////////
+//////////            return binnedData;
+//////////
+//////////        }
+//////////
+//////////        //TO DO: Code for saving chart plot using ChartUtils from jfreechart. confirm what format to save the plot in.
+//////////        //TO DO: Figure out how to change the title of the plot :(
+//////////    }
     /**
      * @param args the command line arguments
      */
