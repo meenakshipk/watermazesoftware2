@@ -5,13 +5,11 @@
  */
 package wmsoftware;
 
-import ij.IJ;
 import ij.io.FileSaver;
 import ij.ImagePlus;
 import ij.gui.Plot;
 import ij.gui.PlotWindow;
 import ij.measure.CurveFitter;
-import ij.plugin.frame.Fitter;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import java.awt.Component;
@@ -19,31 +17,10 @@ import java.io.File;
 import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
-import java.awt.Color;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import static java.lang.Float.NaN;
-import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
-import javax.swing.AbstractButton;
-import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.WindowConstants;
-import org.jfree.chart.ChartFactory;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.title.TextTitle;
-import org.jfree.data.xy.XYDataItem;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
-import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  *
@@ -597,6 +574,8 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 
             for (DataStore ds : dss) {
                 String resultName = "";
+//                ArrayList<double[]> paraList = new ArrayList<>();
+                ArrayList<double[]> RmList = new ArrayList<>();
 
                 int size = ds.getMiceNo();
                 for (int mouse = 0; mouse < size; mouse++) {
@@ -635,55 +614,88 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     resultHMap.put(mouse, result);
                     ds.setHMap(resultName, resultHMap);
 
-                    System.out.println("Before individual mouse check box.");
                     if (jCheckBoxIndividualMouse2.isSelected()) {
-                        System.out.println("Before binning.");
                         XYSeries resultSeries = this.toXYSeries(resultName, resultDist, result);
                         resultSeries = this.binSeriesinX(userBin, resultSeries);
-                        System.out.println("After binning.");
                         ArrayList<double[]> Array = this.toArray(resultSeries);
-                        System.out.println("After making xy double arrays.");
 
                         double[] xData = Array.get(0);
                         double[] yData = Array.get(1);
 
-//                        System.out.println("Before plot.");
-//                        Plot spIJ = new Plot("Distance vs " + resultName + ": M_" + mouse, "R-Distance", resultName);
-//                        spIJ.add("Circle", xData, yData);
-//                        System.out.println("After plot add data.");
-//
-//                        PlotWindow show = spIJ.show();
-//                        System.out.println("After plot show using plotwindow. Before curve fit");
                         CurveFitter cf = new CurveFitter(xData, yData);
                         cf.doFit(CurveFitter.POLY2);
-                        System.out.println("Fit code: " + CurveFitter.POLY2);
-                        System.out.println("Fit formula: " + cf.getFormula());
                         double[] para = cf.getParams();
-                        System.out.println("Fit parameters: " + Arrays.toString(para));
+//                        paraList.add(para);
                         Plot plot = cf.getPlot();
-
                         plot.setXYLabels("Distance", resultName);
-//                        String title = "Distance vs " + resultName + ": M_" + mouse;
-                        String title = "title name 1";
-                        String title2 = "title name 2";
+                        String title = "Distance vs " + resultName + ": M_" + mouse;
                         PlotWindow pw = plot.show();
                         pw.setTitle(title);
                         ImagePlus imp = plot.getImagePlus();
-                        imp.setTitle(title2);
+                        imp.setTitle(title);
                         new FileSaver(imp).saveAsTiff(dir.getPath() + File.separator + imp.getTitle() + ".tif");
+
+                        //calculate Rm from coefficients
+                        double B0 = para[0];
+                        double B1 = para[1];
+                        double B2 = para[2];
+                        double[] Rm = new double[3];
+                        double det = 48.10488 + (72 * B1);
+                        double thetam1 = (9.42 + Math.sqrt(det)) / 6;
+                        double thetam2 = (9.42 - Math.sqrt(det)) / 6;
+                        double RmValue = (Math.pow(thetam1, 2) - (3.14 * thetam1) + 3.287) / (2 * (B2 + 1));
+                        Rm[0] = thetam1;
+                        Rm[1] = thetam2;
+                        Rm[2] = RmValue;
+                        RmList.add(Rm);
                     }
                 }
-            }
-            if (jCheckBoxAveMouse2.isSelected()) {
-                //TO DO: Averaging
-                //TO DO: Add code to save plot once code completed in Class ScatterPlot, something like
-                //sp.save();
-            }
 
+                //bar plot for Rm
+                if (jCheckBoxAveMouse2.isSelected()) {
+                    //TO DO: Averaging
+                    Mouse aveM = new Mouse();
+                    aveM.setID(ds.getMiceNo());
+                    ds.setMouse(aveM);
+
+                    int dimX = 200;
+                    int dimY = 200;
+                    float sum[][] = new float[dimX][dimY];
+                    int N[][] = new int[dimX][dimY];
+                    for (int mouse = 0; mouse < size; mouse++) {
+                        HashMap resultDistHMap = ds.getHMap("Distance") == null ? new HashMap<>() : ds.getHMap("Distance");
+                        HashMap resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
+                        ArrayList<Float> resultDist = (ArrayList<Float>) resultDistHMap.get(mouse);
+                        ArrayList<Float> result = (ArrayList<Float>) resultHMap.get(mouse);
+                        XYSeries resultSeries = this.toXYSeries(resultName, resultDist, result);
+                        resultSeries = this.binSeriesinX(userBin, resultSeries);
+                        ArrayList<double[]> Array = this.toArray(resultSeries);
+
+//                        for (int pixY = 0; pixY < dimY; pixY++) {
+//                            for (int pixX = 0; pixX < dimX; pixX++) {
+//                                float value = (nextMouseArray[pixX][pixY]);
+//                                if (!Float.isNaN(value)) {
+//                                    sum[pixX][pixY] = sum[pixX][pixY] + value;
+//                                    N[pixX][pixY] = N[pixX][pixY] + 1;
+//                                }
+//                            }
+//                        }
+                    }
+
+                    float[][] aveMouseArray = new float[dimX][dimY];
+                    for (int pixY = 0; pixY < dimY; pixY++) {
+                        for (int pixX = 0; pixX < dimX; pixX++) {
+                            aveMouseArray[pixX][pixY] = sum[pixX][pixY] / N[pixX][pixY];
+                        }
+                    }
+
+                }
+            }
             if (i == Integer.MAX_VALUE) {
                 break;
             }
         }
+
 
     }//GEN-LAST:event_jButtonGenPlotActionPerformed
 
