@@ -651,7 +651,15 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     }
                 }
 
-                //bar plot for Rm
+                //bar plot for Rm - CHECK IF VALUES ARE CORRECT
+                double[] yvalues = new double[RmList.size()];
+                for (int ii = 0; ii < RmList.size(); ii++) {
+                    yvalues[ii] = RmList.get(ii)[2];
+                }
+                Plot rmPlot = new Plot("Rm Plot: Distance vs Velocity", "Mouse", "Rm");
+                rmPlot.add("separated bar", yvalues);
+                rmPlot.show();
+
                 if (jCheckBoxAveMouse2.isSelected()) {
                     //TO DO: Averaging
                     Mouse aveM = new Mouse();
