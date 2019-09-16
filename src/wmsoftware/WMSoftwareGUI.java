@@ -931,27 +931,40 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         }
 
         private float[][] averageAcrossPixel(XYSeries curSeries, ArrayList<Float> M) {
-            float[][] result = new float[240][240]; //dimensions hardcoded 240*240
-            for (int i = 0; i < result[0].length; i++) {
-                for (int j = 0; j < result[1].length; j++) {
-                    result[i][j] = NaN;
+            //dimensions hardcoded 240*240
+            int dimX = 240;
+            int dimY = 240;
+
+            float[][] sum = new float[dimX][dimY];
+            for (int i = 0; i < sum[0].length; i++) {
+                for (int j = 0; j < sum[1].length; j++) {
+                    sum[i][j] = NaN;
                 }
             }
-            int size = curSeries.getItemCount();
-            for (int j = 0; j < size - 2; j++) { //removed -2 from curSeries.getItemCount()
+            int[][] count = new int[dimX][dimY];
+
+            int size = M.size();
+            for (int j = 0; j < size; j++) { 
                 float XPo = curSeries.getX(j).floatValue();
                 float YPo = curSeries.getY(j).floatValue();
                 int pixX = Math.round(XPo);
                 int pixY = Math.round(YPo);
-                float idxValue = result[pixX][pixY];
-                float value;
-                if (Float.isNaN(idxValue)) {
-                    value = M.get(j);
+                if (!Float.isNaN(sum[pixX][pixY])) {
+                    sum[pixX][pixY] = (sum[pixX][pixY] + M.get(j));
+                    count[pixX][pixY] = count[pixX][pixY] + 1;
                 } else {
-                    value = (idxValue + M.get(j)) / 2;
+                    sum[pixX][pixY] = M.get(j);
+                    count[pixX][pixY] = 1;
                 }
-                result[pixX][pixY] = value;
             }
+
+            float[][] result = new float[dimX][dimY];
+            for (int pixY = 0; pixY < dimY; pixY++) {
+                for (int pixX = 0; pixX < dimX; pixX++) {
+                    result[pixX][pixY] = sum[pixX][pixY] / count[pixX][pixY];
+                }
+            }
+
             return result;
         }
 
@@ -965,88 +978,6 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         }
     }
 
-//////////    private class ScatterPlot extends JFrame {
-//////////
-//////////        XYSeriesCollection dataset = null;
-//////////
-//////////        private ScatterPlot(String title) {
-//////////            super(title);
-//////////            // Create dataset
-//////////            XYDataset dataset = createDataset();
-//////////            // Create chart
-//////////            JFreeChart chart = ChartFactory.createScatterPlot(
-//////////                    title,
-//////////                    "X-Axis", "Y-Axis", dataset);
-//////////
-//////////            //Changes background color
-//////////            XYPlot plot = (XYPlot) chart.getPlot();
-//////////            plot.setBackgroundPaint(new Color(255, 228, 196));
-//////////
-//////////            // Create Panel
-//////////            ChartPanel panel = new ChartPanel(chart);
-//////////            setContentPane(panel);
-//////////        }
-//////////
-//////////        private XYDataset createDataset() {
-//////////            dataset = new XYSeriesCollection();
-//////////            return dataset;
-//////////        }
-//////////
-//////////        public XYSeriesCollection addData(XYSeries Series) {
-//////////            dataset.addSeries(Series);
-//////////            return dataset;
-//////////        }
-//////////
-//////////        public void showPlot() {
-//////////            this.setSize(800, 400);
-//////////            this.setLocationRelativeTo(null);
-//////////            this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-//////////            this.setVisible(true);
-//////////        }
-//////////
-//////////        private XYSeries toXYSeries(String name, ArrayList<Float> ar1, ArrayList<Float> ar2) {
-//////////            XYSeries series = new XYSeries(name, true);
-//////////            for (int i = 0; i < ar1.size() && i < ar2.size(); i++) {
-//////////                series.add(ar1.get(i), ar2.get(i));
-//////////            }
-//////////            return series;
-//////////        }
-//////////
-//////////        private XYSeries binSeriesinX(double binWidth, XYSeries Series) {
-//////////            XYSeries binnedData = new XYSeries(Series.getKey());
-//////////            double binStart = (double) Series.getX(0).doubleValue();
-//////////            double binEnd = binStart + binWidth;
-//////////            double halfbinWidth = binWidth / 2;
-//////////            double binCtr = binStart + halfbinWidth;
-//////////            double sum = binStart;
-//////////            int count = 1;
-//////////
-//////////            for (int i = 0; i < Series.getItemCount(); i++) {
-//////////
-//////////                double curX = Series.getX(i).doubleValue();
-//////////                double curY = Series.getY(i).doubleValue();
-//////////
-//////////                if (binStart <= curX && curX < binEnd) {
-//////////                    sum += curY;
-//////////                    count++;
-//////////                } else {
-//////////                    double yData = sum / count;
-//////////                    binnedData.add(binCtr, sum / count);
-//////////                    sum = curY;
-//////////                    count = 1;
-//////////                    binStart = curX;
-//////////                    binCtr = binStart + halfbinWidth;
-//////////                    binEnd = binStart + binWidth;
-//////////                }
-//////////            }
-//////////
-//////////            return binnedData;
-//////////
-//////////        }
-//////////
-//////////        //TO DO: Code for saving chart plot using ChartUtils from jfreechart. confirm what format to save the plot in.
-//////////        //TO DO: Figure out how to change the title of the plot :(
-//////////    }
     /**
      * @param args the command line arguments
      */
