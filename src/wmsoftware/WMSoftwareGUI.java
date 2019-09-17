@@ -501,8 +501,14 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     if (jCheckBoxIndividualMouse1.isSelected()) {
                         float[][] imageArray = map.averageAcrossPixel(series, result);
                         ip = map.generateHeatMap(imageArray);
+                        ImagePlus imp = new ImagePlus(resultName + "_M" + mouse, ip);
 //                        map.show(ip);
                         map.saveHeatMap(resultName + "_M" + mouse, ip);
+
+//                        //opens the dialog box asking for user input on polynomial degree
+//                        //but no clue what happens after that. clearly not working yet.
+//                        Polynomial_Surface_Fit psf = new Polynomial_Surface_Fit(imp);
+//                        psf.run(ip);
                     }
                 }
 
@@ -515,6 +521,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     int dimY = 240;
                     float sum[][] = new float[dimX][dimY];
                     int N[][] = new int[dimX][dimY];
+
                     for (int mouse = 0; mouse < size; mouse++) {
                         XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
                         ArrayList<Float> nextMouse = (ArrayList<Float>) ds.getHMap(resultName).get(mouse);
@@ -537,8 +544,9 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             aveMouseArray[pixX][pixY] = sum[pixX][pixY] / N[pixX][pixY];
                         }
                     }
-                    //make image and save it
-//                    map.show(ip);
+                    
+                    //create image
+                    ip = map.generateHeatMap(aveMouseArray);
                     map.saveHeatMap(resultName + "_aveM", ip);
                 }
                 //QUESTION/NOTES/TO DO: Does the average mouse measure values need to be converted to an arraylist and saved in datastore's hashmap?                    ip = map.generateHeatMap(aveMouseArray);
@@ -941,16 +949,22 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     sum[i][j] = NaN;
                 }
             }
+
             int[][] count = new int[dimX][dimY];
+            for (int i = 0; i < count[0].length; i++) {
+                for (int j = 0; j < count[1].length; j++) {
+                    count[i][j] = (int) NaN;
+                }
+            }
 
             int size = M.size();
-            for (int j = 0; j < size; j++) { 
+            for (int j = 0; j < size; j++) {
                 float XPo = curSeries.getX(j).floatValue();
                 float YPo = curSeries.getY(j).floatValue();
                 int pixX = Math.round(XPo);
                 int pixY = Math.round(YPo);
                 if (!Float.isNaN(sum[pixX][pixY])) {
-                    sum[pixX][pixY] = (sum[pixX][pixY] + M.get(j));
+                    sum[pixX][pixY] = sum[pixX][pixY] + M.get(j);
                     count[pixX][pixY] = count[pixX][pixY] + 1;
                 } else {
                     sum[pixX][pixY] = M.get(j);
@@ -961,7 +975,8 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             float[][] result = new float[dimX][dimY];
             for (int pixY = 0; pixY < dimY; pixY++) {
                 for (int pixX = 0; pixX < dimX; pixX++) {
-                    result[pixX][pixY] = sum[pixX][pixY] / count[pixX][pixY];
+                    result[pixX][pixY] = sum[pixX][pixY] / count[pixX][pixY]; //average
+//                    result[pixX][pixY] = sum[pixX][pixY]; //sum
                 }
             }
 
