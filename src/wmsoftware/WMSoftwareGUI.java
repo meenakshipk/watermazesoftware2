@@ -544,7 +544,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             aveMouseArray[pixX][pixY] = sum[pixX][pixY] / N[pixX][pixY];
                         }
                     }
-                    
+
                     //create image
                     ip = map.generateHeatMap(aveMouseArray);
                     map.saveHeatMap(resultName + "_aveM", ip);
@@ -625,16 +625,18 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     if (jCheckBoxIndividualMouse2.isSelected()) {
                         XYSeries resultSeries = this.toXYSeries(resultName, resultDist, result);
                         resultSeries = this.binSeriesinX(userBin, resultSeries);
-                        ArrayList<double[]> Array = this.toArray(resultSeries);
 
+                        //first method to plot and fit to polynomial and save parameters of fit
+                        ArrayList<double[]> Array = this.toArray(resultSeries);
                         double[] xData = Array.get(0);
                         double[] yData = Array.get(1);
-
                         CurveFitter cf = new CurveFitter(xData, yData);
                         cf.doFit(CurveFitter.POLY2);
                         double[] para = cf.getParams();
 //                        paraList.add(para);
                         Plot plot = cf.getPlot();
+
+                        //2nd method to save plot
                         plot.setXYLabels("Distance", resultName);
                         String title = "Distance vs " + resultName + ": M_" + mouse;
                         PlotWindow pw = plot.show();
@@ -775,21 +777,25 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
         }
 
         private ArrayList<Float> resTime(XYSeries series) {
-            ArrayList<Float> temp = new ArrayList<>();
             ArrayList<Float> result = new ArrayList<>();
-
-            //initalise resTime with zeros for an image with dimensions 240,240
-            for (int count = 0; count <= (240 * 240); count++) {
-                temp.add(0f);
+            ArrayList<Float> temp = new ArrayList<>();
+            for (int i = 0; i < (240 * 240); i++) {
+                temp.add(NaN);
             }
             for (int i = 0; i < series.getItemCount(); i++) {
                 float XPo = series.getX(i).floatValue();
                 float YPo = series.getY(i).floatValue();
                 int arrayIdx = ((Math.round(YPo) * 240) + Math.round(XPo));
-                temp.set(arrayIdx, (temp.get(arrayIdx) + 10)); // increment is by  5 because we average across pixel? FIGURE IT OUT.
+                if (!Float.isNaN(temp.get(arrayIdx))) {
+                    temp.set(arrayIdx, (temp.get(arrayIdx) + 20)); // increment is by  5 because we average across pixel?
+                } else {
+                    temp.set(arrayIdx, 20f);
+                }
                 result.add(i, (temp.get(arrayIdx)));
             }
+//            return temp;
             return result;
+
         }
 
         private XYSeries corSeries(XYSeries series) {
