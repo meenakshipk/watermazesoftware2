@@ -50,7 +50,7 @@ public class Polynomial_Surface_Fit {
     }
 
     // Called by ImageJ to process the image
-    public void run(ImageProcessor ip) {
+    public ImagePlus run(ImageProcessor ip) {
         int c, p, t, iy, ix, cSlice;
         int powy, powx;
 
@@ -70,7 +70,7 @@ public class Polynomial_Surface_Fit {
 
         // Ask User what order of polynomial to use for the surface fit
         if (!getPolyOrder()) {
-            return;
+            return imp;
         }
 
         //#################################################
@@ -107,7 +107,7 @@ public class Polynomial_Surface_Fit {
 
         //#################################################
         // Surface Fit of the Region Of Interest (ROI)
-        IJ.showStatus("Performing Surface Fit");
+//        IJ.showStatus("Performing Surface Fit");
         // Perform a 2D Least Squares Surface Fit of the average image
         double[][] SurfFit = SurfaceFit(TheImage);
 
@@ -149,8 +149,10 @@ public class Polynomial_Surface_Fit {
         autoAdjust(TheFit_imp, TheFit_ip);
         TheFit_imp.show();
         TheFit_imp.updateAndDraw();
+        imp = TheFit_imp;
 
-        IJ.showStatus("Polynomial Surface Fit: Complete");
+        return imp;
+        //      IJ.showStatus("Polynomial Surface Fit: Complete");
         //IJ.register(Polynomial_Surface_Fit.class);
     }
 

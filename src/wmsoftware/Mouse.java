@@ -14,7 +14,7 @@ public class Mouse {
     private int ID; //mouse ID;
     private int groupID;      // undefined = 0, probe day 3 = 1, probe day 5 = 2, probe day 7 = 3.
     private int geneticBackground;      // undefined = 0, wild type = 1, transgenic = 2.
-
+    
     public Mouse() {
     }
 

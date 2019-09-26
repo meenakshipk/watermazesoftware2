@@ -8,6 +8,7 @@ package wmsoftware;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,6 +32,14 @@ public class DataStore {
     private HashMap<Integer, ArrayList<Float>> velCosHMap = null;
     private HashMap<Integer, ArrayList<Float>> velSinHMap = null;
     private HashMap<Integer, ArrayList<Float>> velErrHMap = null;
+    private HashMap<Integer, ArrayList<Float>> RmVelMap = null;
+    private HashMap<Integer, ArrayList<Float>> RmVelCosMap = null;
+    private HashMap<Integer, ArrayList<Float>> RmVelSinMap = null;
+    private HashMap<Integer, ArrayList<Float>> RmVelErrMap = null;
+    private HashMap<Integer, ArrayList<Float>> RmVelPlot = null;
+    private HashMap<Integer, ArrayList<Float>> RmVelCosPlot = null;
+    private HashMap<Integer, ArrayList<Float>> RmVelSinPlot = null;
+    private HashMap<Integer, ArrayList<Float>> RmVelErrPlot = null;
 
     /**
      *
@@ -94,6 +103,30 @@ public class DataStore {
             case "Velocity Error":
                 result = velErrHMap;
                 break;
+            case "Velocity Rm Map":
+                result = RmVelMap;
+                break;
+            case "Velocity along Platform Rm Map":
+                result = RmVelCosMap;
+                break;
+            case "Velocity perpendicular Platform Rm Map":
+                result = RmVelSinMap;
+                break;
+            case "Velocity Error Rm Map":
+                result = RmVelErrMap;
+                break;
+            case "Velocity Rm Plot":
+                result = RmVelPlot;
+                break;
+            case "Velocity along Platform Rm Plot":
+                result = RmVelCosPlot;
+                break;
+            case "Velocity perpendicular Platform Rm Plot":
+                result = RmVelSinPlot;
+                break;
+            case "Velocity Error Rm Plot":
+                result = RmVelErrPlot;
+                break;
         }
         return result;
     }
@@ -102,18 +135,49 @@ public class DataStore {
         switch (s) {
             case "Position":
                 posHMap = hm;
+                break;
             case "Residence Time":
                 resTimeHMap = hm;
+                break;
             case "Distance":
                 distHMap = hm;
+                break;
             case "Velocity":
                 velHMap = hm;
+                break;
             case "Velocity along Pt":
                 velCosHMap = hm;
+                break;
             case "Velocity perpendicular Pt":
                 velSinHMap = hm;
+                break;
             case "Velocity Error":
                 velErrHMap = hm;
+                break;
+            case "Velocity Rm Map":
+                RmVelMap = hm;
+                break;
+            case "Velocity along Platform Rm Map":
+                RmVelCosMap = hm;
+                break;
+            case "Velocity perpendicular Platform Rm Map":
+                RmVelSinMap = hm;
+                break;
+            case "Velocity Error Rm Map":
+                RmVelErrMap = hm;
+                break;
+            case "Velocity Rm Plot":
+                RmVelPlot = hm;
+                break;
+            case "Velocity along Platform Rm Plot":
+                RmVelCosPlot = hm;
+                break;
+            case "Velocity perpendicular Platform Rm Plot":
+                RmVelSinPlot = hm;
+                break;
+            case "Velocity Error Rm Plot":
+                RmVelErrPlot = hm;
+                break;
         }
     }
 
@@ -170,5 +234,40 @@ public class DataStore {
                 }
             }
         }
+    }
+
+    public File writeFiles(String name, String directory, HashMap hs) {
+
+        FileWriter outStream = null;
+        File out = new File(directory + "\\" + name);
+        int totalMice = hs.size();
+        int count = 0;
+        String toWrite = "";
+        try {
+            outStream = new FileWriter(out);
+            while (count < totalMice) {
+                ArrayList<Float> measure = (ArrayList<Float>) hs.get(count);
+                int count2 = 0;
+                int datalength = measure.size();
+
+                while (count2 < datalength) {
+                    if (count2 == 0) {
+                        toWrite = "Mouse" + count + "\t";
+                    }
+                    if (count2 == datalength - 1) {
+                        toWrite = toWrite + measure.get(count2) + "\n";
+                    } else {
+                        toWrite = toWrite + measure.get(count2) + "\t";
+                    }
+                    count2++;
+                }
+                outStream.write(toWrite);
+                count++;
+            }
+            outStream.close();
+        } catch (IOException ex) {
+            Logger.getLogger(DataStore.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return out;
     }
 }
