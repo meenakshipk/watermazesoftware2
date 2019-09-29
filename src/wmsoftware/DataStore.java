@@ -32,14 +32,23 @@ public class DataStore {
     private HashMap<Integer, ArrayList<Float>> velCosHMap = null;
     private HashMap<Integer, ArrayList<Float>> velSinHMap = null;
     private HashMap<Integer, ArrayList<Float>> velErrHMap = null;
-    private HashMap<Integer, ArrayList<Float>> RmVelMap = null;
-    private HashMap<Integer, ArrayList<Float>> RmVelCosMap = null;
-    private HashMap<Integer, ArrayList<Float>> RmVelSinMap = null;
-    private HashMap<Integer, ArrayList<Float>> RmVelErrMap = null;
-    private HashMap<Integer, ArrayList<Float>> RmVelPlot = null;
-    private HashMap<Integer, ArrayList<Float>> RmVelCosPlot = null;
-    private HashMap<Integer, ArrayList<Float>> RmVelSinPlot = null;
-    private HashMap<Integer, ArrayList<Float>> RmVelErrPlot = null;
+//    private HashMap<Integer, ArrayList<Float>> RmVelMap = null;
+//    private HashMap<Integer, ArrayList<Float>> RmVelCosMap = null;
+//    private HashMap<Integer, ArrayList<Float>> RmVelSinMap = null;
+//    private HashMap<Integer, ArrayList<Float>> RmVelErrMap = null;
+//    private HashMap<Integer, ArrayList<Float>> RmVelPlot = null;
+//    private HashMap<Integer, ArrayList<Float>> RmVelCosPlot = null;
+//    private HashMap<Integer, ArrayList<Float>> RmVelSinPlot = null;
+//    private HashMap<Integer, ArrayList<Float>> RmVelErrPlot = null;
+    private HashMap<Integer, Float> RmDistMap = null;
+    private HashMap<Integer, Float> RmVelMap = null;
+    private HashMap<Integer, Float> RmVelCosMap = null;
+    private HashMap<Integer, Float> RmVelSinMap = null;
+    private HashMap<Integer, Float> RmVelErrMap = null;
+    private HashMap<Integer, Float> RmVelPlot = null;
+    private HashMap<Integer, Float> RmVelCosPlot = null;
+    private HashMap<Integer, Float> RmVelSinPlot = null;
+    private HashMap<Integer, Float> RmVelErrPlot = null;
 
     /**
      *
@@ -64,7 +73,7 @@ public class DataStore {
         return fileList;
     }
 
-    public int getMiceNo() {
+    public int getTotalMice() {
         return fileList.length;
     }
 
@@ -102,6 +111,9 @@ public class DataStore {
                 break;
             case "Velocity Error":
                 result = velErrHMap;
+                break;
+            case "Distance Rm Map":
+                result = RmDistMap;
                 break;
             case "Velocity Rm Map":
                 result = RmVelMap;
@@ -145,14 +157,17 @@ public class DataStore {
             case "Velocity":
                 velHMap = hm;
                 break;
-            case "Velocity along Pt":
+            case "Velocity along Platform":
                 velCosHMap = hm;
                 break;
-            case "Velocity perpendicular Pt":
+            case "Velocity perpendicular Platform":
                 velSinHMap = hm;
                 break;
             case "Velocity Error":
                 velErrHMap = hm;
+                break;
+            case "Distance Rm Map":
+                RmDistMap = hm;
                 break;
             case "Velocity Rm Map":
                 RmVelMap = hm;
@@ -236,6 +251,40 @@ public class DataStore {
         }
     }
 
+//    public File writeFiles(String name, String directory, HashMap hs) {
+//
+//        FileWriter outStream = null;
+//        File out = new File(directory + "\\" + name);
+//        int totalMice = hs.size();
+//        int count = 0;
+//        String toWrite = "";
+//        try {
+//            outStream = new FileWriter(out);
+//            while (count < totalMice) {
+//                ArrayList<Float> measure = (ArrayList<Float>) hs.get(count);
+//                int count2 = 0;
+//                int datalength = measure.size();
+//
+//                while (count2 < datalength) {
+//                    if (count2 == 0) {
+//                        toWrite = "Mouse" + count + "\t";
+//                    }
+//                    if (count2 == datalength - 1) {
+//                        toWrite = toWrite + measure.get(count2) + "\n";
+//                    } else {
+//                        toWrite = toWrite + measure.get(count2) + "\t";
+//                    }
+//                    count2++;
+//                }
+//                outStream.write(toWrite);
+//                count++;
+//            }
+//            outStream.close();
+//        } catch (IOException ex) {
+//            Logger.getLogger(DataStore.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        return out;
+//    }
     public File writeFiles(String name, String directory, HashMap hs) {
 
         FileWriter outStream = null;
@@ -246,21 +295,8 @@ public class DataStore {
         try {
             outStream = new FileWriter(out);
             while (count < totalMice) {
-                ArrayList<Float> measure = (ArrayList<Float>) hs.get(count);
-                int count2 = 0;
-                int datalength = measure.size();
-
-                while (count2 < datalength) {
-                    if (count2 == 0) {
-                        toWrite = "Mouse" + count + "\t";
-                    }
-                    if (count2 == datalength - 1) {
-                        toWrite = toWrite + measure.get(count2) + "\n";
-                    } else {
-                        toWrite = toWrite + measure.get(count2) + "\t";
-                    }
-                    count2++;
-                }
+                float measure = (float) hs.get(count);
+                toWrite = "Mouse" + count + "\t" + measure + "\n";
                 outStream.write(toWrite);
                 count++;
             }

@@ -20,6 +20,7 @@ import java.awt.Image;
 import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -438,35 +439,31 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jButtonReadFilesActionPerformed
 
     private void jButtonGenHMapActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonGenHMapActionPerformed
-//NOTES: 15.09.2019 - Check vel along pt and vel perpendicular to pt. individual images look odd (as a result, so does average mouse image)
+        if (jCheckBoxIndividualMouse1.isSelected() || jCheckBoxAveMouse1.isSelected()) {
+            //BitSet for the checkboxes
+            BitSet bs = new BitSet(6);
 
-        //BitSet for the checkboxes
-        BitSet bs = new BitSet(6);
+            bs.set(0, jCheckBoxResTime.isSelected());
+            bs.set(1, jCheckBoxRDist.isSelected());
+            bs.set(2, jCheckBoxRVel.isSelected());
+            bs.set(3, jCheckBoxRVelaP.isSelected());
+            bs.set(4, jCheckBoxRVelpP.isSelected());
+            bs.set(5, jCheckBoxRVelErr.isSelected());
 
-        bs.set(0, jCheckBoxResTime.isSelected());
-        bs.set(1, jCheckBoxRDist.isSelected());
-        bs.set(2, jCheckBoxRVel.isSelected());
-        bs.set(3, jCheckBoxRVelaP.isSelected());
-        bs.set(4, jCheckBoxRVelpP.isSelected());
-        bs.set(5, jCheckBoxRVelErr.isSelected());
+            //Select directory to store files
+            JFileChooser Fc = new JFileChooser();
+            Fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            Fc.showOpenDialog(this);
+            dir = Fc.getSelectedFile();
 
-        //Select directory to store files
-        JFileChooser Fc = new JFileChooser();
-        Fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        Fc.showOpenDialog(this);
-        dir = Fc.getSelectedFile();
+            Measures m = new Measures();
+            Maps map = new Maps();
+            ImageProcessor ip = null;
 
-        Measures m = new Measures();
-        Maps map = new Maps();
-        ImageProcessor ip = null;
-
-        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
             int ds_counter = 0;
-
             for (DataStore ds : dss) {
-                String resultName = "";
 
-                int size = ds.getMiceNo();
+                int size = ds.getTotalMice();
                 for (int mouse = 0; mouse < size; mouse++) {
                     XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
                     ArrayList<Float> RmList = new ArrayList<>();
@@ -479,9 +476,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                     //dimensions hardcoded 240*240
                     int dimX = 240;
                     int dimY = 240;
-                    int width = dimX;
-                    int height = dimY;
-                    ImageProcessor ipResTime = new FloatProcessor(width, height);
+                    ImageProcessor ipResTime = new FloatProcessor(dimX, dimY);
                     float[][] arrayResTime = new float[dimX][dimY];
                     for (int Y = 0; Y < dimY; Y++) {
                         for (int X = 0; X < dimX; X++) {
@@ -490,306 +485,481 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                         }
                     }
                     ipResTime.setFloatArray(arrayResTime);
-//                    System.out.println("Get Max value: " + ipResTime.getMin() + " Get Min value: " + ipResTime.getMax());
+                    resultHMap = ds.getHMap("Residence Time") == null ? new HashMap<>() : ds.getHMap("Residence Time");
+                    resultHMap.put(mouse, resultResTime);
+                    ds.setHMap("Residence Time", resultHMap);
 
-                    switch (i) {
-                        case 0: //residence time
-                            resultHMap = ds.getHMap("Residence Time") == null ? new HashMap<>() : ds.getHMap("Residence Time");
-                            resultHMap.put(mouse, resultResTime);
-                            ds.setHMap("Residence Time", resultHMap);
-                            map.show(ipResTime);
-                            map.saveHeatMap("ResTime_M" + mouse, ipResTime);
-                            break;
+                    for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+                        String resultName = "";
 
-                        case 1: //rdist
-                            resultName = "Distance";
-                            result = m.dist(series);
-                            break;
+                        switch (i) {
+                            case 0: //residence time
+//                              resultName = "Residence Time";
+//                              map.show(ipResTime);
+                                map.saveHeatMap("ResTime_M" + mouse, ipResTime);
+                                break;
 
-                        case 2: //rvel
-                            resultName = "Velocity";
-                            result = m.vel(series);
-                            break;
+                            case 1: //rdist
+                                resultName = "Distance";
+                                result = m.dist(series);
+                                break;
 
-                        case 3: //rvel along pt
-                            resultName = "Velocity along Platform";
-                            result = m.velComponent(series, "cos");
-                            break;
+                            case 2: //rvel
+                                resultName = "Velocity";
+                                result = m.vel(series);
+                                break;
 
-                        case 4:
-                            resultName = "Velocity perpendicular Platform";
-                            result = m.velComponent(series, "sin");
-                            break;
+                            case 3: //rvel along pt
+                                resultName = "Velocity along Platform";
+                                result = m.velComponent(series, "cos");
+                                break;
 
-                        case 5:
-                            resultName = "Velocity Error";
-                            result = m.velErr(series);
-                            break;
-                    }
+                            case 4:
+                                resultName = "Velocity perpendicular Platform";
+                                result = m.velComponent(series, "sin");
+                                break;
 
-                    if (jCheckBoxIndividualMouse1.isSelected() && i != 0) {
+                            case 5:
+                                resultName = "Velocity Error";
+                                result = m.velErr(series);
+                                break;
+                        }
+
                         //store results in datastore's hashmaps
                         resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
                         resultHMap.put(mouse, result);
                         ds.setHMap(resultName, resultHMap);
 
-                        //image generation
-                        ArrayList<Float> sumValues = map.sumAcrossPixel(series, result);
-                        ArrayList<Float> averagedValues = new ArrayList<>();
-                        for (int ii = 0; ii < sumValues.size(); ii++) {
-                            float averagedPixel;
-                            if (resultResTime.get(ii) == 0) {
-                                averagedPixel = sumValues.get(ii);
-                            } else {
-                                averagedPixel = sumValues.get(ii) / resultResTime.get(ii);
+                        if (jCheckBoxIndividualMouse1.isSelected() && i != 0) {
+
+                            //image generation
+                            ArrayList<Float> sumValues = map.sumAcrossPixel(series, result);
+                            ArrayList<Float> averagedValues = new ArrayList<>();
+                            for (int ii = 0; ii < sumValues.size(); ii++) {
+                                float averagedPixel;
+                                if (resultResTime.get(ii) == 0) {
+                                    averagedPixel = sumValues.get(ii);
+                                } else {
+                                    averagedPixel = sumValues.get(ii) / resultResTime.get(ii);
+                                }
+                                averagedValues.add(ii, averagedPixel);
                             }
-                            averagedValues.add(ii, averagedPixel);
-                        }
-                        ip = map.generateHeatMap(averagedValues);
-                        ImagePlus image = new ImagePlus(resultName + "_M" + mouse + "_T" + ds_counter, ip);
+                            ip = map.generateHeatMap(averagedValues);
+                            ImagePlus image = new ImagePlus(resultName + "_M" + mouse + "_T" + ds_counter, ip);
 //                        map.show(ip);
-                        map.saveHeatMap(resultName + "_M" + mouse + "_T" + ds_counter, ip);
+                            map.saveHeatMap(resultName + "_M" + mouse + "_T" + ds_counter, ip);
 
-                        //polynomial surface fit
-                        //threshold out 0 values and create an ROI in restime image
-                        double minValue = 1;
-                        double maxValue = ipResTime.getMax();
+                            //polynomial surface fit
+                            //threshold out 0 values and create an ROI in restime image
+                            double minValue = 1;
+                            double maxValue = ipResTime.getMax();
 //                        System.out.println("minValue: " + minValue + "maxValue: " + maxValue);
-                        ipResTime.setThreshold(minValue, maxValue, 3);
-                        ThresholdToSelection tts = new ThresholdToSelection();
-                        Roi selectionROI = tts.convert(ipResTime);
-                        Rectangle bounds = selectionROI.getBounds();
+                            ipResTime.setThreshold(minValue, maxValue, 3);
+                            ThresholdToSelection tts = new ThresholdToSelection();
+                            Roi selectionROI = tts.convert(ipResTime);
+                            Rectangle bounds = selectionROI.getBounds();
 //                        System.out.println("Bounding rect" + bounds);
-                        image.setRoi(selectionROI);
+                            image.setRoi(selectionROI);
 
-                        //polynomial fit function - result window is NaN - WHY?
-                        Polynomial_Surface_Fit psf = new Polynomial_Surface_Fit(image);
-                        image = psf.run(ip);
+                            //polynomial fit function - result window is NaN - WHY?
+                            Polynomial_Surface_Fit psf = new Polynomial_Surface_Fit(image);
+                            image = psf.run(ip);
 //                        image.show();
-                        //apply differential here 
-                        Differentials_JB diffJB = new Differentials_JB();
-                        diffJB.run2(image);
-                        //then invert before finding maxima
-                        ip = image.getProcessor();
-                        ip.invert(); //so minima can be maxima
+                            //apply differential here 
+                            Differentials_JB diffJB = new Differentials_JB();
+                            diffJB.run2(image);
+                            //then invert before finding maxima
+                            ip = image.getProcessor();
+                            ip.invert(); //so minima can be maxima
 
-                        //Find maxima within the pool ROI
-                        OvalRoi pool = new OvalRoi(0, 0, 240, 240);
-                        //find maxima
-                        MaximumFinder mf = new MaximumFinder();
-                        Polygon maximas = mf.getMaxima(ip, 0.00001, true); //excludes edges
+                            //Find maxima within the pool ROI
+                            OvalRoi pool = new OvalRoi(0, 0, 240, 240);
+                            //find maxima
+                            MaximumFinder mf = new MaximumFinder();
+                            Polygon maximas = mf.getMaxima(ip, 0.00001, true); //excludes edges
 //                        System.out.println("Find Maxima: XCoord " + Arrays.toString(maximas.xpoints));
 //                        System.out.println("Find Maxima: YCoord " + Arrays.toString(maximas.ypoints));
+//                        System.out.println("Points: " + maximas.npoints + Arrays.toString(maximas.xpoints) + Arrays.toString(maximas.ypoints));
 
-                        int xb = (int) bounds.getX();
-                        int yb = (int) bounds.getY();
-                        for (int ii = 0; ii < maximas.xpoints.length; ii++) {
-                            int X = maximas.xpoints[ii] + xb;
-                            int Y = maximas.ypoints[ii] + yb;
-//                            System.out.print("xmaxima " + maximas.xpoints[ii]);
-//                            System.out.print(" ymaxima " + maximas.ypoints[ii]);
-//                            System.out.print(" X " + X);
-//                            System.out.println(" Y " + Y);
-
-                            if (pool.containsPoint(X, Y)) {
-                                float Rm = (float) Math.sqrt(Math.pow((175 - X), 2) + Math.pow((175 - Y), 2));
-                                RmList.add(Rm);
-                            }
-                        }
-//                        System.out.println("Rm list for all maximas UNSORTED: " + RmList);
-                        Collections.sort(RmList);
-//                       System.out.println("Rm list for all maximas: " + RmList);
-                        HashMap rmHMap = ds.getHMap(resultName + " Rm Map") == null ? new HashMap<>() : ds.getHMap(resultName + " Rm Map");
-                        rmHMap.put(mouse, RmList);
-                        ds.setHMap(resultName + " Rm Map", rmHMap);
-
-                        //resize image to 240 by 240 dimension
-                        float[][] processedArray = new float[dimX][dimY];
-                        for (int Y = 0; Y < dimY; Y++) {
-                            for (int X = 0; X < dimX; X++) {
-                                processedArray[X][Y] = NaN;
-                            }
-                        }
-//                        int xb = (int) bounds.getX();  //already defined above
-//                        int yb = (int) bounds.getY();  // already defined above
-                        int xbmax = (int) bounds.getWidth();
-                        int ybmax = (int) bounds.getHeight();
-                        float[][] f = ip.getFloatArray();
-                        for (int Y = 0; Y < ybmax; Y++) {
-                            for (int X = 0; X < xbmax; X++) {
-                                if (pool.containsPoint(X + xb, Y + yb)) {
-                                    processedArray[X + xb][Y + yb] = f[X][Y];
+                            ArrayList<Float> intensity = new ArrayList<>();
+                            int xb = (int) bounds.getX();
+                            int yb = (int) bounds.getY();
+                            for (int ii = 0; ii < maximas.npoints; ii++) {
+                                int X = maximas.xpoints[ii] + xb;
+                                int Y = maximas.ypoints[ii] + yb;
+                                if (pool.containsPoint(X, Y)) {
+                                    intensity.add(ip.getPixelValue(maximas.xpoints[ii], maximas.ypoints[ii]));
+                                    float Rm = (float) Math.sqrt(Math.pow((175 - X), 2) + Math.pow((175 - Y), 2));
+                                    RmList.add(Rm);
                                 }
                             }
+
+                            float max_intensity = Collections.max(intensity);
+                            int index = intensity.indexOf(max_intensity);
+                            float Rm = RmList.get(index);
+//                        System.out.println("Rm list for all maximas UNSORTED: " + RmList);
+//                        Collections.sort(RmList);
+//                       System.out.println("Rm list for all maximas: " + RmList);
+                            HashMap rmHMap = ds.getHMap(resultName + " Rm Map") == null ? new HashMap<>() : ds.getHMap(resultName + " Rm Map");
+                            rmHMap.put(mouse, Rm);
+                            ds.setHMap(resultName + " Rm Map", rmHMap);
+
+                            //resize image to 240 by 240 dimension
+                            float[][] processedArray = new float[dimX][dimY];
+                            for (int Y = 0; Y < dimY; Y++) {
+                                for (int X = 0; X < dimX; X++) {
+                                    processedArray[X][Y] = NaN;
+                                }
+                            }
+//                        int xb = (int) bounds.getX();  //already defined above
+//                        int yb = (int) bounds.getY();  // already defined above
+                            int xbmax = (int) bounds.getWidth();
+                            int ybmax = (int) bounds.getHeight();
+                            float[][] f = ip.getFloatArray();
+                            for (int Y = 0; Y < ybmax; Y++) {
+                                for (int X = 0; X < xbmax; X++) {
+                                    if (pool.containsPoint(X + xb, Y + yb)) {
+                                        processedArray[X + xb][Y + yb] = f[X][Y];
+                                    }
+                                }
+                            }
+                            ImageProcessor processedip = new FloatProcessor(processedArray);
+                            map.saveHeatMap(resultName + "processed_M" + mouse + "_T" + ds_counter, processedip);
                         }
-                        ImageProcessor processedip = new FloatProcessor(processedArray);
-                        map.saveHeatMap(resultName + "processed_M" + mouse + "_T" + ds_counter, processedip);
+                        if (i == Integer.MAX_VALUE) {
+                            break;
+                        }
                     }
                 }
 
-                //write out file with list of calculated Rm
-                //BUG - if resultName is residence time or distance, below 2 lines of code throws an error. FIX IT.
-                ds.writeFiles(resultName + "_RmMap_" + ds_counter, dir.getAbsolutePath(), ds.getHMap(resultName + " Rm Map"));
-                System.out.println("End of code.");
+                //Calculate average mouse
+                if (jCheckBoxAveMouse1.isSelected()) {
+                    int dimX = 240;
+                    int dimY = 240;
 
-//                if (jCheckBoxAveMouse1.isSelected()) {
-//                    Mouse aveM = new Mouse();
-//                    aveM.setID(ds.getMiceNo());
-//                    ds.setMouse(aveM);
-//
-//                    int dimX = 240;
-//                    int dimY = 240;
-//                    float sum[][] = new float[dimX][dimY];
-//                    int N[][] = new int[dimX][dimY];
-//
-//                    for (int mouse = 0; mouse < size; mouse++) {
-//                        XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
-//                        ArrayList<Float> nextMouse = (ArrayList<Float>) ds.getHMap(resultName).get(mouse);
-//                        float[][] nextMouseArray = map.averageAcrossPixel(series, nextMouse);
-//
-//                        for (int pixY = 0; pixY < dimY; pixY++) {
-//                            for (int pixX = 0; pixX < dimX; pixX++) {
-//                                float value = (nextMouseArray[pixX][pixY]);
-//                                if (!Float.isNaN(value)) {
-//                                    sum[pixX][pixY] = sum[pixX][pixY] + value;
-//                                    N[pixX][pixY] = N[pixX][pixY] + 1;
-//                                }
-//                            }
-//                        }
-//                    }
-//
-//                    float[][] aveMouseArray = new float[dimX][dimY];
-//                    for (int pixY = 0; pixY < dimY; pixY++) {
-//                        for (int pixX = 0; pixX < dimX; pixX++) {
-//                            aveMouseArray[pixX][pixY] = sum[pixX][pixY] / N[pixX][pixY];
-//                        }
-//                    }
-//
-//                    //create image
-////                    ip = map.generateHeatMap(aveMouseArray);
-//                    map.saveHeatMap(resultName + "_aveM", ip);
-//                }
-                //QUESTION/NOTES/TO DO: Does the average mouse measure values need to be converted to an arraylist and saved in datastore's hashmap?                    ip = map.generateHeatMap(aveMouseArray);
+                    //Residence time calc for frequency count of visited pixels
+                    HashMap resTimeHMap = ds.getHMap("Residence Time");
+                    ArrayList<Integer> sumResTime = new ArrayList<>();
+                    for (int iii = 0; iii < dimX * dimY; iii++) {
+                        sumResTime.add(0);
+                    }
+                    for (int ii = 0; ii < resTimeHMap.size(); ii++) {
+                        ArrayList<Integer> resTime = (ArrayList<Integer>) resTimeHMap.get(ii);
+                        for (int iii = 0; iii < resTime.size(); iii++) {
+                            int avePixel = sumResTime.get(iii) + resTime.get(iii);
+                            sumResTime.set(iii, avePixel);
+                        }
+                    }
+
+                    ImageProcessor ipResTime = new FloatProcessor(dimX, dimY);
+                    float[][] arrayResTime = new float[dimX][dimY];
+                    for (int Y = 0; Y < dimY; Y++) {
+                        for (int X = 0; X < dimX; X++) {
+                            int arrayIdx = (Y * 240) + X;
+                            arrayResTime[X][Y] = sumResTime.get(arrayIdx);
+                        }
+                    }
+                    ipResTime.setFloatArray(arrayResTime);
+
+                    for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+                        String resultName = "";
+
+                        switch (i) {
+                            case 0: //residence time
+                                resultName = "Residence Time";
+                                //save restime ave
+                                map.saveHeatMap("ResTime_aveM", ipResTime);
+                                break;
+
+                            case 1: //rdist
+                                resultName = "Distance";
+                                break;
+
+                            case 2: //rvel
+                                resultName = "Velocity";
+                                break;
+
+                            case 3: //rvel along pt
+                                resultName = "Velocity along Platform";
+                                break;
+
+                            case 4:
+                                resultName = "Velocity perpendicular Platform";
+                                break;
+
+                            case 5:
+                                resultName = "Velocity Error";
+                                break;
+                        }
+
+                        if (i != 0) {
+                            HashMap posHMap = ds.getHMap("Position");
+                            HashMap resultHMap = ds.getHMap(resultName);
+
+                            //sum measure values for mice
+                            ArrayList<Float> sumValMeasures = new ArrayList<>();
+                            for (int iii = 0; iii < dimX * dimY; iii++) {
+                                sumValMeasures.add(0f);
+                            }
+                            for (int ii = 0; ii < resultHMap.size(); ii++) {
+                                XYSeries series = (XYSeries) posHMap.get(ii);
+                                ArrayList<Float> result = (ArrayList<Float>) resultHMap.get(ii);
+                                ArrayList<Float> mValues = map.sumAcrossPixel(series, result);
+                                for (int iii = 0; iii < mValues.size(); iii++) {
+                                    float summedPixel = sumValMeasures.get(iii) + mValues.get(iii);
+                                    sumValMeasures.set(iii, summedPixel);
+                                }
+                            }
+
+                            //calculate ave mouse for measure
+                            ArrayList<Float> aveMouse = new ArrayList<>();
+                            for (int iii = 0; iii < sumValMeasures.size(); iii++) {
+                                float averagedPixel;
+                                if (sumResTime.get(iii) == 0) {
+                                    averagedPixel = sumValMeasures.get(iii);
+                                } else {
+                                    averagedPixel = sumValMeasures.get(iii) / sumResTime.get(iii);
+                                }
+                                aveMouse.add(iii, averagedPixel);
+                            }
+                            ip = map.generateHeatMap(aveMouse);
+                            map.saveHeatMap(resultName + "_AveM" + "_T" + ds_counter, ip);
+                            ImagePlus image = new ImagePlus(resultName + "_AveM" + "_T" + ds_counter, ip);
+
+                            //code to do surface fit, diff, find maxima and save the maxima
+                            //polynomial surface fit
+                            //threshold out 0 values and create an ROI in restime image
+                            double minValue = 1;
+                            double maxValue = ipResTime.getMax();
+//                        System.out.println("minValue: " + minValue + "maxValue: " + maxValue);
+                            ipResTime.setThreshold(minValue, maxValue, 3);
+                            ThresholdToSelection tts = new ThresholdToSelection();
+                            Roi selectionROI = tts.convert(ipResTime);
+                            Rectangle bounds = selectionROI.getBounds();
+                        System.out.println("Bounding rect" + bounds);
+                            image.setRoi(selectionROI);
+
+                            //polynomial fit function - result window is NaN - WHY?
+                            Polynomial_Surface_Fit psf = new Polynomial_Surface_Fit(image);
+                            image = psf.run(ip);
+                            image.show();
+                            //apply differential here 
+                            Differentials_JB diffJB = new Differentials_JB();
+                            diffJB.run2(image);
+                            //then invert before finding maxima
+                            ip = image.getProcessor();
+                            ip.invert(); //so minima can be maxima
+
+                            //Find maxima within the pool ROI
+                            OvalRoi pool = new OvalRoi(0, 0, 240, 240);
+                            //find maxima
+                            MaximumFinder mf = new MaximumFinder();
+                            Polygon maximas = mf.getMaxima(ip, 0.00001, true); //excludes edges
+//                        System.out.println("Find Maxima: XCoord " + Arrays.toString(maximas.xpoints));
+//                        System.out.println("Find Maxima: YCoord " + Arrays.toString(maximas.ypoints));
+//                        System.out.println("Points: " + maximas.npoints + Arrays.toString(maximas.xpoints) + Arrays.toString(maximas.ypoints));
+                            ArrayList<Float> RmList = new ArrayList<>();
+                            ArrayList<Float> intensity = new ArrayList<>();
+                            int xb = (int) bounds.getX();
+                            int yb = (int) bounds.getY();
+                            for (int ii = 0; ii < maximas.npoints; ii++) {
+                                int X = maximas.xpoints[ii] + xb;
+                                int Y = maximas.ypoints[ii] + yb;
+                                if (pool.containsPoint(X, Y)) {
+                                    intensity.add(ip.getPixelValue(maximas.xpoints[ii], maximas.ypoints[ii]));
+                                    float Rm = (float) Math.sqrt(Math.pow((175 - X), 2) + Math.pow((175 - Y), 2));
+                                    RmList.add(Rm);
+                                }
+                            }
+
+                            float max_intensity = Collections.max(intensity);
+                            int index = intensity.indexOf(max_intensity);
+                            float Rm = RmList.get(index);
+//                        System.out.println("Rm list for all maximas UNSORTED: " + RmList);
+//                        Collections.sort(RmList);
+//                       System.out.println("Rm list for all maximas: " + RmList);
+                            HashMap rmHMap = ds.getHMap(resultName + " Rm Map") == null ? new HashMap<>() : ds.getHMap(resultName + " Rm Map");
+                            rmHMap.put((ds.getTotalMice()), Rm);
+                            ds.setHMap(resultName + " Rm Map", rmHMap);
+
+                            //resize image to 240 by 240 dimension
+                            float[][] processedArray = new float[dimX][dimY];
+                            for (int Y = 0; Y < dimY; Y++) {
+                                for (int X = 0; X < dimX; X++) {
+                                    processedArray[X][Y] = NaN;
+                                }
+                            }
+//                        int xb = (int) bounds.getX();  //already defined above
+//                        int yb = (int) bounds.getY();  // already defined above
+                            int xbmax = (int) bounds.getWidth();
+                            int ybmax = (int) bounds.getHeight();
+                            float[][] f = ip.getFloatArray();
+                            for (int Y = 0; Y < ybmax; Y++) {
+                                for (int X = 0; X < xbmax; X++) {
+                                    if (pool.containsPoint(X + xb, Y + yb)) {
+                                        processedArray[X + xb][Y + yb] = f[X][Y];
+                                    }
+                                }
+                            }
+                            ImageProcessor processedip = new FloatProcessor(processedArray);
+                            map.saveHeatMap(resultName + "processed_AveM" + "_T" + ds_counter, processedip);
+                        }
+                        if (i == Integer.MAX_VALUE) {
+                            break;
+                        }
+                    }
+                }
+
+                //Write out complete file with list of calculated Rm - should be done after average mouse is calculated
+                for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+                    String resultName = "";
+                    switch (i) {
+
+                        case 1: //rdist
+                            resultName = "Distance";
+                            break;
+
+                        case 2: //rvel
+                            resultName = "Velocity";
+                            break;
+
+                        case 3: //rvel along pt
+                            resultName = "Velocity along Platform";
+                            break;
+
+                        case 4:
+                            resultName = "Velocity perpendicular Platform";
+                            break;
+
+                        case 5:
+                            resultName = "Velocity Error";
+                            break;
+                    }
+                    if (!resultName.isEmpty()) {
+                        //write out file with list of calculated Rm
+                        ds.writeFiles(resultName + "_RmMap_" + ds_counter, dir.getAbsolutePath(), ds.getHMap(resultName + " Rm Map"));
+                    }
+                    if (i == Integer.MAX_VALUE) {
+                        break;
+                    }
+                }
                 ds_counter++;
             }
-
-            if (i == Integer.MAX_VALUE) {
-                break;
-            }
+            System.out.println("Button click done.");
+        } else {
+            JOptionPane.showMessageDialog(frame, "Please select individual mouse or average mouse.", "ERROR", JOptionPane.ERROR_MESSAGE);
         }
-
-        System.out.println("Button click done.");
     }//GEN-LAST:event_jButtonGenHMapActionPerformed
 
     private void jButtonGenPlotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonGenPlotActionPerformed
-        // TODO add your handling code here:
-        BitSet bs = new BitSet(4);
+        if (jCheckBoxIndividualMouse2.isSelected() || jCheckBoxAveMouse2.isSelected()) {
+            BitSet bs = new BitSet(4);
 
-        bs.set(0, jCheckBoxRDistvRVel.isSelected());
-        bs.set(1, jCheckBoxRDistvRVelaP.isSelected());
-        bs.set(2, jCheckBoxRDistvRVelpP.isSelected());
-        bs.set(3, jCheckBoxRDistvRVelErr.isSelected());
+            bs.set(0, jCheckBoxRDistvRVel.isSelected());
+            bs.set(1, jCheckBoxRDistvRVelaP.isSelected());
+            bs.set(2, jCheckBoxRDistvRVelpP.isSelected());
+            bs.set(3, jCheckBoxRDistvRVelErr.isSelected());
 
-        //bin size for binning values
-        userBin = Double.parseDouble(jTextFieldUserBin.getText());
+            //bin size for binning values
+            userBin = Double.parseDouble(jTextFieldUserBin.getText());
 
-        //Select directory to store files
-        JFileChooser Fc = new JFileChooser();
-        Fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        Fc.showOpenDialog(this);
-        dir = Fc.getSelectedFile();
+            //Select directory to store files
+            JFileChooser Fc = new JFileChooser();
+            Fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            Fc.showOpenDialog(this);
+            dir = Fc.getSelectedFile();
 
-        Measures m = new Measures();
+            Measures m = new Measures();
 //        Plots p = new Plots();
-        for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
-            int ds_counter = 0;
+            for (int i = bs.nextSetBit(0); i >= 0; i = bs.nextSetBit(i + 1)) {
+                int ds_counter = 0;
 
-            for (DataStore ds : dss) {
-                String resultName = "";
+                for (DataStore ds : dss) {
+                    String resultName = "";
 //                ArrayList<double[]> paraList = new ArrayList<>();
 
-                int size = ds.getMiceNo();
-                for (int mouse = 0; mouse < size; mouse++) {
-                    XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
-                    HashMap resultDistHMap = ds.getHMap("Distance") == null ? new HashMap<>() : ds.getHMap("Distance");
-                    ArrayList<Float> resultDist = m.dist(series);
-                    resultDistHMap.put(mouse, resultDist);
-                    ds.setHMap("Distance", resultDistHMap);
+                    int size = ds.getTotalMice();
+                    for (int mouse = 0; mouse < size; mouse++) {
+                        XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
+                        HashMap resultDistHMap = ds.getHMap("Distance") == null ? new HashMap<>() : ds.getHMap("Distance");
+                        ArrayList<Float> resultDist = m.dist(series);
+                        resultDistHMap.put(mouse, resultDist);
+                        ds.setHMap("Distance", resultDistHMap);
 
-                    ArrayList result = new ArrayList<>();
-                    HashMap resultHMap = new HashMap<>();
-                    switch (i) {
+                        ArrayList result = new ArrayList<>();
+                        HashMap resultHMap = new HashMap<>();
+                        switch (i) {
 
-                        case 0: //rvel
-                            resultName = "Velocity";
-                            result = m.vel(series);
-                            break;
+                            case 0: //rvel
+                                resultName = "Velocity";
+                                result = m.vel(series);
+                                break;
 
-                        case 1: //rvel along pt
-                            resultName = "Velocity along Platform";
-                            result = m.velComponent(series, "cos");
-                            break;
+                            case 1: //rvel along pt
+                                resultName = "Velocity along Platform";
+                                result = m.velComponent(series, "cos");
+                                break;
 
-                        case 2:
-                            resultName = "Velocity perpendicular Platform";
-                            result = m.velComponent(series, "sin");
-                            break;
+                            case 2:
+                                resultName = "Velocity perpendicular Platform";
+                                result = m.velComponent(series, "sin");
+                                break;
 
-                        case 3:
-                            resultName = "Velocity Error";
-                            result = m.velErr(series);
-                            break;
-                    }
+                            case 3:
+                                resultName = "Velocity Error";
+                                result = m.velErr(series);
+                                break;
+                        }
 
-                    resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
-                    resultHMap.put(mouse, result);
-                    ds.setHMap(resultName, resultHMap);
+                        resultHMap = ds.getHMap(resultName) == null ? new HashMap<>() : ds.getHMap(resultName);
+                        resultHMap.put(mouse, result);
+                        ds.setHMap(resultName, resultHMap);
 
-                    if (jCheckBoxIndividualMouse2.isSelected()) {
-                        XYSeries resultSeries = this.toXYSeries(resultName, resultDist, result);
-                        resultSeries = this.binSeriesinX(userBin, resultSeries);
-                        //first method to plot and fit to polynomial and save parameters of fit
-                        ArrayList<double[]> Array = this.toArray(resultSeries);
-                        double[] xData = Array.get(0);
-                        double[] yData = Array.get(1);
-                        CurveFitter cf = new CurveFitter(xData, yData);
-                        cf.doFit(CurveFitter.POLY2);
-                        double[] para = cf.getParams();
-                        Plot plot = cf.getPlot();
+                        if (jCheckBoxIndividualMouse2.isSelected()) {
+                            XYSeries resultSeries = this.toXYSeries(resultName, resultDist, result);
+                            resultSeries = this.binSeriesinX(userBin, resultSeries);
+                            //first method to plot and fit to polynomial and save parameters of fit
+                            ArrayList<double[]> Array = this.toArray(resultSeries);
+                            double[] xData = Array.get(0);
+                            double[] yData = Array.get(1);
+                            CurveFitter cf = new CurveFitter(xData, yData);
+                            cf.doFit(CurveFitter.POLY2);
+                            double[] para = cf.getParams();
+                            Plot plot = cf.getPlot();
 
-                        //2nd method to save plot
-                        plot.setXYLabels("Distance", resultName);
-                        String title = "Distance vs " + resultName + ": M_" + mouse;
-                        PlotWindow pw = plot.show();
-                        pw.setTitle(title);
-                        ImagePlus imp = plot.getImagePlus();
-                        imp.setTitle(title);
+                            //2nd method to save plot
+                            plot.setXYLabels("Distance", resultName);
+                            String title = "Distance vs " + resultName + ": M_" + mouse;
+                            PlotWindow pw = plot.show();
+                            pw.setTitle(title);
+                            ImagePlus imp = plot.getImagePlus();
+                            imp.setTitle(title);
 //                        new FileSaver(imp).saveAsTiff(dir.getPath() + File.separator + imp.getTitle() + ".tif");
 
-                        //calculate Rm from coefficients
-                        double B0 = para[0];
-                        double B1 = para[1];
-                        double B2 = para[2];
-                        double[] Rm = new double[3];
-                        double det = 48.10488 + (72 * B1);
-                        double thetam1 = (9.42 + Math.sqrt(det)) / 6;
-                        double thetam2 = (9.42 - Math.sqrt(det)) / 6;
-                        double RmValue = (Math.pow(thetam1, 2) - (3.14 * thetam1) + 3.287) / (2 * (B2 + 1));
-                        Rm[0] = thetam1;
-                        Rm[1] = thetam2;
-                        Rm[2] = RmValue;
-                        ArrayList<Float> RmList = new ArrayList<>();
-                        RmList.add((float) Rm[2]);
-                        HashMap rmHMap = ds.getHMap(resultName + " Rm Plot") == null ? new HashMap<>() : ds.getHMap(resultName + " Rm Plot");
-                        rmHMap.put(mouse, RmList);
-                        ds.setHMap(resultName + " Rm Plot", rmHMap);
-                        System.out.println(resultName + " Rm from fit: " + RmList);
+                            //calculate Rm from coefficients
+                            double B0 = para[0];
+                            double B1 = para[1];
+                            double B2 = para[2];
+                            double[] Rm = new double[3];
+                            double det = 48.10488 + (72 * B1);
+                            double thetam1 = (9.42 + Math.sqrt(det)) / 6;
+                            double thetam2 = (9.42 - Math.sqrt(det)) / 6;
+                            double RmValue = (Math.pow(thetam1, 2) - (3.14 * thetam1) + 3.287) / (2 * (B2 + 1));
+                            Rm[0] = thetam1;
+                            Rm[1] = thetam2;
+                            Rm[2] = RmValue;
+//                        ArrayList<Float> RmList = new ArrayList<>();
+//                        RmList.add((float) Rm[2]);
+                            HashMap rmHMap = ds.getHMap(resultName + " Rm Plot") == null ? new HashMap<>() : ds.getHMap(resultName + " Rm Plot");
+                            rmHMap.put(mouse, Rm[2]);
+                            ds.setHMap(resultName + " Rm Plot", rmHMap);
+//                        System.out.println(resultName + " Rm from fit: " + RmList);
+                        }
                     }
-                }
 
-                //write out file with list of calculated Rm
-                ds.writeFiles(resultName + "_RmPlot_" + ds_counter, dir.getAbsolutePath(), ds.getHMap(resultName + " Rm Plot"));
-                System.out.println("End of code.");
+                    //write out file with list of calculated Rm
+                    ds.writeFiles(resultName + "_RmPlot_" + ds_counter, dir.getAbsolutePath(), ds.getHMap(resultName + " Rm Plot"));
+                    System.out.println("End of code.");
 
 ////                //bar plot for Rm - CHECK IF VALUES ARE CORRECT
 ////                double[] yvalues = new double[RmList.size()];
@@ -829,11 +999,14 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 ////                    }
 ////
 ////                }
-                ds_counter++;
+                    ds_counter++;
+                }
+                if (i == Integer.MAX_VALUE) {
+                    break;
+                }
             }
-            if (i == Integer.MAX_VALUE) {
-                break;
-            }
+        } else {
+            JOptionPane.showMessageDialog(frame, "Please select individual mouse or average mouse.", "ERROR", JOptionPane.ERROR_MESSAGE);
         }
 
         System.out.println("End of button press");
@@ -904,7 +1077,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             int dimY = 240;
 
             ArrayList<Integer> resTime = new ArrayList();
-            for (int count = 0; count <= (dimX * dimY); count++) {
+            for (int count = 0; count < (dimX * dimY); count++) {
                 resTime.add(0);
             }
             for (int i = 0; i < series.getItemCount(); i++) {
@@ -1069,7 +1242,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
             int dimY = 240;
 
             ArrayList<Float> result = new ArrayList<>();
-            for (int count = 0; count <= (dimX * dimY); count++) {
+            for (int count = 0; count < (dimX * dimY); count++) {
                 result.add(0f);
             }
 
