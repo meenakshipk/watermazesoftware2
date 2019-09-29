@@ -466,7 +466,6 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                 int size = ds.getTotalMice();
                 for (int mouse = 0; mouse < size; mouse++) {
                     XYSeries series = (XYSeries) ds.getHMap("Position").get(mouse);
-                    ArrayList<Float> RmList = new ArrayList<>();
 
                     ArrayList<Float> result = new ArrayList<>();
                     HashMap resultHMap = new HashMap<>();
@@ -581,6 +580,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 //                        System.out.println("Find Maxima: YCoord " + Arrays.toString(maximas.ypoints));
 //                        System.out.println("Points: " + maximas.npoints + Arrays.toString(maximas.xpoints) + Arrays.toString(maximas.ypoints));
 
+                            ArrayList<Float> RmList = new ArrayList<>();
                             ArrayList<Float> intensity = new ArrayList<>();
                             int xb = (int) bounds.getX();
                             int yb = (int) bounds.getY();
@@ -736,7 +736,7 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
                             ThresholdToSelection tts = new ThresholdToSelection();
                             Roi selectionROI = tts.convert(ipResTime);
                             Rectangle bounds = selectionROI.getBounds();
-                        System.out.println("Bounding rect" + bounds);
+//                        System.out.println("Bounding rect" + bounds);
                             image.setRoi(selectionROI);
 
                             //polynomial fit function - result window is NaN - WHY?
@@ -972,9 +972,6 @@ public class WMSoftwareGUI extends javax.swing.JFrame {
 ////
 ////                if (jCheckBoxAveMouse2.isSelected()) {
 ////                    //TO DO: check results
-////                    Mouse aveM = new Mouse();
-////                    aveM.setID(ds.getMiceNo());
-////                    ds.setMouse(aveM);
 ////
 ////                    int dimX = 200;
 ////                    int dimY = 200;
